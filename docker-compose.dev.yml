@@ -1,0 +1,31 @@
+version: '3.8'
+
+# Development override - run with: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: development
+      LOG_LEVEL: debug
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/package.json:/app/package.json
+    command: npm run dev
+    ports:
+      - "3000:3000"
+      - "9000:9000"
+      - "9229:9229" # Node debugger
+
+  # In dev mode, frontend runs separately with hot reload
+  # Run: cd frontend && npm start

@@ -1,0 +1,1401 @@
+openapi: 3.0.3
+info:
+  title: EV Charging Management Platform API
+  description: |
+    Enterprise-grade EV Charging Management Platform with OCPP 1.6J support,
+    Razorpay integration, and comprehensive charging infrastructure management.
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@evcharging.com
+  license:
+    name: Proprietary
+
+servers:
+  - url: https://api.evcharging.com/v1
+    description: Production server
+  - url: https://staging-api.evcharging.com/v1
+    description: Staging server
+  - url: http://localhost:3000/api/v1
+    description: Development server
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Users
+    description: User management
+  - name: Partners
+    description: Partner organization management
+  - name: Locations
+    description: Charging location management
+  - name: Stations
+    description: Charging station management
+  - name: Connectors
+    description: Connector management
+  - name: Drivers
+    description: EV driver management
+  - name: Sessions
+    description: Charging session management
+  - name: Tariffs
+    description: Tariff and pricing management
+  - name: Cards
+    description: RFID card management
+  - name: Reports
+    description: Report generation
+  - name: Dashboard
+    description: Dashboard statistics
+
+security:
+  - BearerAuth: []
+
+paths:
+  # Authentication
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: User login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+    post:
+      tags: [Authentication]
+      summary: Refresh access token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      accessToken:
+                        type: string
+                      expiresIn:
+                        type: integer
+
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      summary: User logout
+      responses:
+        '200':
+          description: Logged out successfully
+
+  # Users
+  /users:
+    get:
+      tags: [Users]
+      summary: List users
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/UserStatus'
+      responses:
+        '200':
+          description: Users list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponse'
+    post:
+      tags: [Users]
+      summary: Create user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+
+  /users/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Users]
+      summary: Get user
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+    put:
+      tags: [Users]
+      summary: Update user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: User updated
+    delete:
+      tags: [Users]
+      summary: Delete user
+      responses:
+        '204':
+          description: User deleted
+
+  # Partners
+  /partners:
+    get:
+      tags: [Partners]
+      summary: List partners
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/PartnerStatus'
+      responses:
+        '200':
+          description: Partners list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerListResponse'
+    post:
+      tags: [Partners]
+      summary: Create partner
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePartnerRequest'
+      responses:
+        '201':
+          description: Partner created
+
+  /partners/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Partners]
+      summary: Get partner
+      responses:
+        '200':
+          description: Partner details
+    put:
+      tags: [Partners]
+      summary: Update partner
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePartnerRequest'
+      responses:
+        '200':
+          description: Partner updated
+    delete:
+      tags: [Partners]
+      summary: Delete partner
+      responses:
+        '204':
+          description: Partner deleted
+
+  /partners/{id}/wallet:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Partners]
+      summary: Get partner wallet
+      responses:
+        '200':
+          description: Wallet details
+
+  # Locations
+  /locations:
+    get:
+      tags: [Locations]
+      summary: List locations
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: partnerId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: lat
+          in: query
+          schema:
+            type: number
+        - name: lng
+          in: query
+          schema:
+            type: number
+        - name: radius
+          in: query
+          schema:
+            type: integer
+            description: Radius in kilometers
+      responses:
+        '200':
+          description: Locations list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocationListResponse'
+    post:
+      tags: [Locations]
+      summary: Create location
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLocationRequest'
+      responses:
+        '201':
+          description: Location created
+
+  /locations/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Locations]
+      summary: Get location
+      responses:
+        '200':
+          description: Location details
+    put:
+      tags: [Locations]
+      summary: Update location
+      responses:
+        '200':
+          description: Location updated
+    delete:
+      tags: [Locations]
+      summary: Delete location
+      responses:
+        '204':
+          description: Location deleted
+
+  # Charging Stations
+  /stations:
+    get:
+      tags: [Stations]
+      summary: List stations
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: locationId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: isOnline
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Stations list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StationListResponse'
+    post:
+      tags: [Stations]
+      summary: Create station
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStationRequest'
+      responses:
+        '201':
+          description: Station created
+
+  /stations/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Stations]
+      summary: Get station
+      responses:
+        '200':
+          description: Station details
+    put:
+      tags: [Stations]
+      summary: Update station
+      responses:
+        '200':
+          description: Station updated
+    delete:
+      tags: [Stations]
+      summary: Delete station
+      responses:
+        '204':
+          description: Station deleted
+
+  /stations/{id}/reset:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    post:
+      tags: [Stations]
+      summary: Reset station
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type]
+              properties:
+                type:
+                  type: string
+                  enum: [Soft, Hard]
+      responses:
+        '200':
+          description: Reset command sent
+
+  /stations/{id}/remote-start:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    post:
+      tags: [Stations]
+      summary: Remote start transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [connectorId, idTag]
+              properties:
+                connectorId:
+                  type: integer
+                idTag:
+                  type: string
+                driverId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Remote start sent
+
+  /stations/{id}/remote-stop:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    post:
+      tags: [Stations]
+      summary: Remote stop transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [transactionId]
+              properties:
+                transactionId:
+                  type: integer
+      responses:
+        '200':
+          description: Remote stop sent
+
+  # Connectors
+  /connectors:
+    get:
+      tags: [Connectors]
+      summary: List connectors
+      responses:
+        '200':
+          description: Connectors list
+    post:
+      tags: [Connectors]
+      summary: Create connector
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConnectorRequest'
+      responses:
+        '201':
+          description: Connector created
+
+  /connectors/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Connectors]
+      summary: Get connector
+      responses:
+        '200':
+          description: Connector details
+    put:
+      tags: [Connectors]
+      summary: Update connector
+      responses:
+        '200':
+          description: Connector updated
+    delete:
+      tags: [Connectors]
+      summary: Delete connector
+      responses:
+        '204':
+          description: Connector deleted
+
+  # Sessions
+  /sessions:
+    get:
+      tags: [Sessions]
+      summary: List sessions
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/SessionStatus'
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Sessions list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionListResponse'
+
+  /sessions/active:
+    get:
+      tags: [Sessions]
+      summary: Get active sessions
+      responses:
+        '200':
+          description: Active sessions
+
+  /sessions/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Sessions]
+      summary: Get session
+      responses:
+        '200':
+          description: Session details
+
+  /sessions/start:
+    post:
+      tags: [Sessions]
+      summary: Start session (QR flow)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [connectorId, driverId]
+              properties:
+                connectorId:
+                  type: string
+                  format: uuid
+                driverId:
+                  type: string
+                  format: uuid
+                vehicleId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Session starting
+
+  /sessions/{id}/stop:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    post:
+      tags: [Sessions]
+      summary: Stop session
+      responses:
+        '200':
+          description: Session stopping
+
+  # Tariffs
+  /tariffs:
+    get:
+      tags: [Tariffs]
+      summary: List tariffs
+      responses:
+        '200':
+          description: Tariffs list
+    post:
+      tags: [Tariffs]
+      summary: Create tariff
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTariffRequest'
+      responses:
+        '201':
+          description: Tariff created
+
+  /tariffs/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Tariffs]
+      summary: Get tariff
+      responses:
+        '200':
+          description: Tariff details
+    put:
+      tags: [Tariffs]
+      summary: Update tariff
+      responses:
+        '200':
+          description: Tariff updated
+    delete:
+      tags: [Tariffs]
+      summary: Delete tariff
+      responses:
+        '204':
+          description: Tariff deleted
+
+  # Drivers
+  /drivers:
+    get:
+      tags: [Drivers]
+      summary: List drivers
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Drivers list
+
+  /drivers/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Drivers]
+      summary: Get driver
+      responses:
+        '200':
+          description: Driver details
+
+  /drivers/{id}/wallet:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Drivers]
+      summary: Get driver wallet
+      responses:
+        '200':
+          description: Wallet details
+
+  /drivers/{id}/wallet/topup:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    post:
+      tags: [Drivers]
+      summary: Initiate wallet top-up
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [amount]
+              properties:
+                amount:
+                  type: number
+                  minimum: 100
+      responses:
+        '200':
+          description: Top-up order created
+
+  # Cards
+  /cards:
+    get:
+      tags: [Cards]
+      summary: List RFID cards
+      responses:
+        '200':
+          description: Cards list
+    post:
+      tags: [Cards]
+      summary: Create RFID card
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCardRequest'
+      responses:
+        '201':
+          description: Card created
+
+  /cards/{id}:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    get:
+      tags: [Cards]
+      summary: Get card
+      responses:
+        '200':
+          description: Card details
+    put:
+      tags: [Cards]
+      summary: Update card
+      responses:
+        '200':
+          description: Card updated
+
+  /cards/{id}/block:
+    parameters:
+      - $ref: '#/components/parameters/IdParam'
+    post:
+      tags: [Cards]
+      summary: Block card
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Card blocked
+
+  # Dashboard
+  /dashboard/stats:
+    get:
+      tags: [Dashboard]
+      summary: Get dashboard statistics
+      responses:
+        '200':
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardStats'
+
+  /dashboard/charts/revenue:
+    get:
+      tags: [Dashboard]
+      summary: Get revenue chart data
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [day, week, month, year]
+      responses:
+        '200':
+          description: Revenue chart data
+
+  # Reports
+  /reports/sessions:
+    get:
+      tags: [Reports]
+      summary: Generate session report
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [pdf, excel]
+      responses:
+        '200':
+          description: Report generated
+
+  /reports/revenue:
+    get:
+      tags: [Reports]
+      summary: Generate revenue report
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Report generated
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+
+    LimitParam:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  schemas:
+    # Common
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                type: object
+
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        totalPages:
+          type: integer
+
+    # Auth
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+
+    LoginResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            user:
+              $ref: '#/components/schemas/User'
+            accessToken:
+              type: string
+            refreshToken:
+              type: string
+            expiresIn:
+              type: integer
+
+    # Enums
+    UserStatus:
+      type: string
+      enum: [active, inactive, suspended]
+
+    PartnerStatus:
+      type: string
+      enum: [active, inactive, suspended]
+
+    LocationStatus:
+      type: string
+      enum: [active, inactive, coming_soon]
+
+    ConnectorType:
+      type: string
+      enum: [CCS1, CCS2, CHAdeMO, Type1, Type2, GBT]
+
+    OcppStatus:
+      type: string
+      enum: [Available, Preparing, Charging, SuspendedEVSE, SuspendedEV, Finishing, Reserved, Unavailable, Faulted]
+
+    SessionStatus:
+      type: string
+      enum: [pending, active, completed, failed, cancelled]
+
+    # Users
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        status:
+          $ref: '#/components/schemas/UserStatus'
+        partnerId:
+          type: string
+          format: uuid
+        roles:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    CreateUserRequest:
+      type: object
+      required: [email, password, firstName, lastName]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        roleIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        partnerId:
+          type: string
+          format: uuid
+
+    UpdateUserRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        status:
+          $ref: '#/components/schemas/UserStatus'
+
+    UserResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          $ref: '#/components/schemas/User'
+
+    UserListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    # Partners
+    Partner:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        status:
+          $ref: '#/components/schemas/PartnerStatus'
+        commissionRate:
+          type: number
+        walletBalance:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+
+    CreatePartnerRequest:
+      type: object
+      required: [name, email, phone, address]
+      properties:
+        name:
+          type: string
+        legalName:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        pincode:
+          type: string
+        gstNumber:
+          type: string
+        panNumber:
+          type: string
+        commissionRate:
+          type: number
+          default: 10
+
+    UpdatePartnerRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        status:
+          $ref: '#/components/schemas/PartnerStatus'
+
+    PartnerListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Partner'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    # Locations
+    Location:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        partnerId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        status:
+          $ref: '#/components/schemas/LocationStatus'
+        totalStations:
+          type: integer
+        availableConnectors:
+          type: integer
+
+    CreateLocationRequest:
+      type: object
+      required: [name, address, city, state, pincode, latitude, longitude]
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        pincode:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        operatingHours:
+          type: object
+        amenities:
+          type: array
+          items:
+            type: string
+
+    LocationListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Location'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    # Stations
+    Station:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        locationId:
+          type: string
+          format: uuid
+        ocppIdentity:
+          type: string
+        name:
+          type: string
+        vendor:
+          type: string
+        model:
+          type: string
+        isOnline:
+          type: boolean
+        lastHeartbeat:
+          type: string
+          format: date-time
+        connectors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Connector'
+
+    CreateStationRequest:
+      type: object
+      required: [locationId, ocppIdentity]
+      properties:
+        locationId:
+          type: string
+          format: uuid
+        ocppIdentity:
+          type: string
+        name:
+          type: string
+        vendor:
+          type: string
+        model:
+          type: string
+
+    StationListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Station'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    # Connectors
+    Connector:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        stationId:
+          type: string
+          format: uuid
+        connectorId:
+          type: integer
+        connectorType:
+          $ref: '#/components/schemas/ConnectorType'
+        powerKw:
+          type: number
+        ocppStatus:
+          $ref: '#/components/schemas/OcppStatus'
+
+    CreateConnectorRequest:
+      type: object
+      required: [stationId, connectorId, connectorType, powerKw]
+      properties:
+        stationId:
+          type: string
+          format: uuid
+        connectorId:
+          type: integer
+        connectorType:
+          $ref: '#/components/schemas/ConnectorType'
+        powerKw:
+          type: number
+        voltage:
+          type: integer
+        amperage:
+          type: integer
+        tariffId:
+          type: string
+          format: uuid
+
+    # Sessions
+    Session:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        connectorId:
+          type: string
+          format: uuid
+        driverId:
+          type: string
+          format: uuid
+        transactionId:
+          type: integer
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        energyConsumedKwh:
+          type: number
+        durationMinutes:
+          type: integer
+        totalAmount:
+          type: number
+        status:
+          $ref: '#/components/schemas/SessionStatus'
+
+    SessionListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Session'
+        meta:
+          $ref: '#/components/schemas/PaginationMeta'
+
+    # Tariffs
+    Tariff:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        partnerId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        energyRate:
+          type: number
+        timeRate:
+          type: number
+        sessionFee:
+          type: number
+        taxRate:
+          type: number
+        isDefault:
+          type: boolean
+
+    CreateTariffRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        energyRate:
+          type: number
+        timeRate:
+          type: number
+        sessionFee:
+          type: number
+        idleFeeRate:
+          type: number
+        taxRate:
+          type: number
+          default: 18
+        isDefault:
+          type: boolean
+          default: false
+
+    # Cards
+    CreateCardRequest:
+      type: object
+      required: [cardNumber, uid]
+      properties:
+        cardNumber:
+          type: string
+        uid:
+          type: string
+        driverId:
+          type: string
+          format: uuid
+        validFrom:
+          type: string
+          format: date
+        validUntil:
+          type: string
+          format: date
+
+    # Dashboard
+    DashboardStats:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            activeSessions:
+              type: integer
+            todayRevenue:
+              type: number
+            todaySessions:
+              type: integer
+            todayEnergy:
+              type: number
+            totalStations:
+              type: integer
+            onlineStations:
+              type: integer
+            totalConnectors:
+              type: integer
+            availableConnectors:
+              type: integer
