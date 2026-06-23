@@ -10,6 +10,7 @@ import {
   Alert,
   InputAdornment,
   IconButton,
+  Typography,
 } from '@mui/material';
 import { Visibility, VisibilityOff, Email, Lock } from '@mui/icons-material';
 import { AppDispatch, RootState } from '../../store';
@@ -46,7 +47,16 @@ const Login: React.FC = () => {
   });
 
   return (
-    <Box component="form" onSubmit={formik.handleSubmit}>
+    <Box component="form" onSubmit={formik.handleSubmit} noValidate>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4" fontWeight={700} gutterBottom>
+          Welcome back
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Sign in to the DJT EV admin console
+        </Typography>
+      </Box>
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
@@ -111,10 +121,28 @@ const Login: React.FC = () => {
         variant="contained"
         size="large"
         disabled={loading}
-        sx={{ mt: 3, mb: 2 }}
+        sx={{
+          mt: 3,
+          mb: 1,
+          py: 1.25,
+          fontWeight: 600,
+          fontSize: '1rem',
+          boxShadow: '0 8px 20px rgba(76,175,80,0.35)',
+          '&:hover': { boxShadow: '0 8px 24px rgba(76,175,80,0.45)' },
+        }}
       >
         {loading ? 'Signing in...' : 'Sign In'}
       </Button>
+
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        align="center"
+        display="block"
+        sx={{ mt: 2 }}
+      >
+        Authorized administrators only
+      </Typography>
     </Box>
   );
 };
