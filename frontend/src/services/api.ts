@@ -78,16 +78,16 @@ export const authApi = {
 };
 
 export const usersApi = {
-  list: (params?: object) => api.get('/users', { params }),
-  getById: (id: string) => api.get(`/users/${id}`),
+  list: (params?: object) => api.get('/web/users', { params }),
+  getById: (id: string) => api.get(`/web/users/${id}`),
   create: (data: object) => api.post('/users', data),
   update: (id: string, data: object) => api.put(`/users/${id}`, data),
   delete: (id: string) => api.delete(`/users/${id}`),
 };
 
 export const partnersApi = {
-  list: (params?: object) => api.get('/partners', { params }),
-  getById: (id: string) => api.get(`/partners/${id}`),
+  list: (params?: object) => api.get('/web/partners', { params }),
+  getById: (id: string) => api.get(`/web/partners/${id}`),
   create: (data: object) => api.post('/partners', data),
   update: (id: string, data: object) => api.put(`/partners/${id}`, data),
   delete: (id: string) => api.delete(`/partners/${id}`),
@@ -96,8 +96,8 @@ export const partnersApi = {
 };
 
 export const locationsApi = {
-  list: (params?: object) => api.get('/locations', { params }),
-  getById: (id: string) => api.get(`/locations/${id}`),
+  list: (params?: object) => api.get('/web/locations', { params }),
+  getById: (id: string) => api.get(`/web/locations/${id}`),
   create: (data: object) => api.post('/locations', data),
   update: (id: string, data: object) => api.put(`/locations/${id}`, data),
   delete: (id: string) => api.delete(`/locations/${id}`),
@@ -106,8 +106,8 @@ export const locationsApi = {
 };
 
 export const stationsApi = {
-  list: (params?: object) => api.get('/stations', { params }),
-  getById: (id: string) => api.get(`/stations/${id}`),
+  list: (params?: object) => api.get('/web/stations', { params }),
+  getById: (id: string) => api.get(`/web/stations/${id}`),
   create: (data: object) => api.post('/stations', data),
   update: (id: string, data: object) => api.put(`/stations/${id}`, data),
   delete: (id: string) => api.delete(`/stations/${id}`),
@@ -129,8 +129,8 @@ export const connectorsApi = {
 };
 
 export const driversApi = {
-  list: (params?: object) => api.get('/drivers', { params }),
-  getById: (id: string) => api.get(`/drivers/${id}`),
+  list: (params?: object) => api.get('/web/drivers', { params }),
+  getById: (id: string) => api.get(`/web/drivers/${id}`),
   create: (data: object) => api.post('/drivers', data),
   update: (id: string, data: object) => api.put(`/drivers/${id}`, data),
   delete: (id: string) => api.delete(`/drivers/${id}`),
@@ -162,8 +162,8 @@ export const tariffsApi = {
 };
 
 export const reservationsApi = {
-  list: (params?: object) => api.get('/reservations', { params }),
-  getById: (id: string) => api.get(`/reservations/${id}`),
+  list: (params?: object) => api.get('/web/reservations', { params }),
+  getById: (id: string) => api.get(`/web/reservations/${id}`),
   create: (data: object) => api.post('/reservations', data),
   cancel: (id: string, reason?: string) =>
     api.post(`/reservations/${id}/cancel`, { reason }),
@@ -172,8 +172,8 @@ export const reservationsApi = {
 };
 
 export const cardsApi = {
-  list: (params?: object) => api.get('/cards', { params }),
-  getById: (id: string) => api.get(`/cards/${id}`),
+  list: (params?: object) => api.get('/web/cards', { params }),
+  getById: (id: string) => api.get(`/web/cards/${id}`),
   create: (data: object) => api.post('/cards', data),
   update: (id: string, data: object) => api.put(`/cards/${id}`, data),
   block: (id: string, reason?: string) => api.post(`/cards/${id}/block`, { reason }),
@@ -182,16 +182,16 @@ export const cardsApi = {
 };
 
 export const disputesApi = {
-  list: (params?: object) => api.get('/disputes', { params }),
-  getById: (id: string) => api.get(`/disputes/${id}`),
+  list: (params?: object) => api.get('/web/disputes', { params }),
+  getById: (id: string) => api.get(`/web/disputes/${id}`),
   create: (data: object) => api.post('/disputes', data),
   update: (id: string, data: object) => api.put(`/disputes/${id}`, data),
   resolve: (id: string, data: object) => api.post(`/disputes/${id}/resolve`, data),
 };
 
 export const couponsApi = {
-  list: (params?: object) => api.get('/coupons', { params }),
-  getById: (id: string) => api.get(`/coupons/${id}`),
+  list: (params?: object) => api.get('/web/coupons', { params }),
+  getById: (id: string) => api.get(`/web/coupons/${id}`),
   create: (data: object) => api.post('/coupons', data),
   update: (id: string, data: object) => api.put(`/coupons/${id}`, data),
   delete: (id: string) => api.delete(`/coupons/${id}`),
@@ -200,15 +200,26 @@ export const couponsApi = {
 };
 
 export const reviewsApi = {
-  list: (params?: object) => api.get('/reviews', { params }),
-  getById: (id: string) => api.get(`/reviews/${id}`),
+  list: (params?: object) => api.get('/web/reviews', { params }),
+  getById: (id: string) => api.get(`/web/reviews/${id}`),
   reply: (id: string, reply: string) => api.post(`/reviews/${id}/reply`, { reply }),
   delete: (id: string) => api.delete(`/reviews/${id}`),
   getByStation: (stationId: string, params?: object) =>
     api.get(`/reviews/station/${stationId}`, { params }),
 };
 
+export const transactionsApi = {
+  list: (params?: object) => api.get('/web/transactions', { params }),
+  getById: (id: string) => api.get(`/web/transactions/${id}`),
+};
+
+export const schedulesApi = {
+  list: (params?: object) => api.get('/web/schedules', { params }),
+  getById: (id: string) => api.get(`/web/schedules/${id}`),
+};
+
 export const reportsApi = {
+  list: (params?: object) => api.get('/web/reports', { params }),
   sessions: (params?: object) => api.get('/reports/sessions', { params }),
   revenue: (params?: object) => api.get('/reports/revenue', { params }),
   energy: (params?: object) => api.get('/reports/energy', { params }),
@@ -217,13 +228,17 @@ export const reportsApi = {
   settlement: (params?: object) => api.get('/reports/settlement', { params }),
 };
 
+// Admin web-console dashboard endpoints live under the /web namespace
+// (djt-app api/routes/web/webRtr.js), separate from the per-user mobile
+// /dashboard routes.
 export const dashboardApi = {
-  overview: (params?: object) => api.get('/dashboard/overview', { params }),
-  sessionTrends: (params?: object) => api.get('/dashboard/session-trends', { params }),
-  stationStatus: (params?: object) => api.get('/dashboard/station-status', { params }),
-  topStations: (params?: object) => api.get('/dashboard/top-stations', { params }),
-  recentActivity: (params?: object) => api.get('/dashboard/recent-activity', { params }),
-  liveSessions: (params?: object) => api.get('/dashboard/live-sessions', { params }),
+  analytics: (params?: object) => api.get('/web/dashboard/analytics', { params }),
+  overview: (params?: object) => api.get('/web/dashboard/overview', { params }),
+  sessionTrends: (params?: object) => api.get('/web/dashboard/session-trends', { params }),
+  stationStatus: (params?: object) => api.get('/web/dashboard/station-status', { params }),
+  topStations: (params?: object) => api.get('/web/dashboard/top-stations', { params }),
+  recentActivity: (params?: object) => api.get('/web/dashboard/recent-activity', { params }),
+  liveSessions: (params?: object) => api.get('/web/dashboard/live-sessions', { params }),
 };
 
 export const logsApi = {

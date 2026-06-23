@@ -1,12 +1,41 @@
-import React from 'react';
-import { Box, Typography } from '@mui/material';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Box } from '@mui/material';
+import { GridColDef } from '@mui/x-data-grid';
+import { AppDispatch, RootState } from '../../store';
+import { fetchReviews } from '../../features/reviews/reviewsSlice';
 import PageHeader from '../../components/common/PageHeader';
+import DataTable from '../../components/common/DataTable';
+
+const columns: GridColDef[] = [
+  { field: 'user', headerName: 'User', flex: 1, minWidth: 120 },
+  { field: 'station', headerName: 'Station', flex: 1, minWidth: 120 },
+  { field: 'rating', headerName: 'Rating', type: 'number', flex: 1, minWidth: 120 },
+  { field: 'review', headerName: 'Review', flex: 1, minWidth: 120 },
+  { field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 120 },
+];
 
 const Reviews: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { rows, loading } = useSelector((s: RootState) => (s as any).reviews);
+
+  useEffect(() => {
+    dispatch(fetchReviews());
+  }, [dispatch]);
+
   return (
     <Box>
-      <PageHeader title="Reviews" subtitle="View and respond to station reviews" />
-      <Typography>Reviews list component</Typography>
+      <PageHeader
+        title="Reviews"
+        subtitle="Driver reviews of charging stations"
+      />
+      <DataTable
+        rows={rows}
+        columns={columns}
+        loading={loading}
+        getRowId={(r) => r.id}
+        autoHeight
+      />
     </Box>
   );
 };

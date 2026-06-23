@@ -23,6 +23,8 @@ const Connectors = React.lazy(() => import('./pages/connectors/Connectors'));
 const Drivers = React.lazy(() => import('./pages/drivers/Drivers'));
 const DriverDetail = React.lazy(() => import('./pages/drivers/DriverDetail'));
 const Sessions = React.lazy(() => import('./pages/sessions/Sessions'));
+const Transactions = React.lazy(() => import('./pages/transactions/Transactions'));
+const Schedules = React.lazy(() => import('./pages/schedules/Schedules'));
 const SessionDetail = React.lazy(() => import('./pages/sessions/SessionDetail'));
 const Tariffs = React.lazy(() => import('./pages/tariffs/Tariffs'));
 const Reservations = React.lazy(() => import('./pages/reservations/Reservations'));
@@ -107,6 +109,10 @@ const App: React.FC = () => {
           {/* Sessions */}
           <Route path="/sessions" element={<Sessions />} />
           <Route path="/sessions/:id" element={<SessionDetail />} />
+
+          {/* Transactions & Schedules */}
+          <Route path="/transactions" element={<Transactions />} />
+          <Route path="/schedules" element={<Schedules />} />
 
           {/* Tariffs & Pricing */}
           <Route path="/tariffs" element={<Tariffs />} />

@@ -272,9 +272,12 @@ WHERE i_ts >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
 GROUP BY sttus_cd;
 ```
 
+
 ---
 
 ## 8. Read-only compliance note
 Against the live DB only `SHOW TABLES`, `DESCRIBE`, and `SELECT … LIMIT` were executed. Every `ALTER`/`INSERT`/`UPDATE` in this document is supplied for you to review and run — none were applied automatically.
 ```
 ```
+
+

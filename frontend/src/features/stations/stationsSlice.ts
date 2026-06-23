@@ -1,102 +1,44 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { stationsApi } from '../../services/api';
 
-interface Station {
-  id: string;
-  name: string;
-  ocppIdentity: string;
-  status: string;
-  isOnline: boolean;
-  location?: any;
-  connectors?: any[];
-}
-
-interface StationsState {
-  stations: Station[];
-  selectedStation: Station | null;
+interface State {
+  rows: any[];
   loading: boolean;
   error: string | null;
-  pagination: { total: number; page: number; limit: number };
 }
 
-const initialState: StationsState = {
-  stations: [],
-  selectedStation: null,
-  loading: false,
-  error: null,
-  pagination: { total: 0, page: 1, limit: 20 },
-};
+const initialState: State = { rows: [], loading: false, error: null };
 
-export const fetchStations = createAsyncThunk('stations/fetchStations', async (params?: object) => {
-  const response = await stationsApi.list(params);
-  return response.data;
-});
-
-export const fetchStationById = createAsyncThunk('stations/fetchStationById', async (id: string) => {
-  const response = await stationsApi.getById(id);
-  return response.data.station;
-});
-
-export const createStation = createAsyncThunk('stations/createStation', async (data: object) => {
-  const response = await stationsApi.create(data);
-  return response.data.station;
-});
-
-export const updateStation = createAsyncThunk(
-  'stations/updateStation',
-  async ({ id, data }: { id: string; data: object }) => {
-    const response = await stationsApi.update(id, data);
-    return response.data.station;
+export const fetchStations = createAsyncThunk(
+  'stations/fetch',
+  async (params: object | undefined, { rejectWithValue }) => {
+    try {
+      const r = await stationsApi.list(params);
+      return r.data.rows as any[];
+    } catch (e: any) {
+      return rejectWithValue(e.response?.data?.error || 'Failed to load stations');
+    }
   }
 );
 
-export const resetStation = createAsyncThunk(
-  'stations/resetStation',
-  async ({ id, type }: { id: string; type?: string }) => {
-    const response = await stationsApi.reset(id, type);
-    return response.data;
-  }
-);
-
-const stationsSlice = createSlice({
+const slice = createSlice({
   name: 'stations',
   initialState,
-  reducers: {
-    clearSelectedStation: (state) => { state.selectedStation = null; },
-    updateStationStatus: (state, action) => {
-      const { stationId, status, isOnline } = action.payload;
-      const station = state.stations.find((s) => s.id === stationId);
-      if (station) {
-        if (status) station.status = status;
-        if (isOnline !== undefined) station.isOnline = isOnline;
-      }
-    },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchStations.pending, (state) => { state.loading = true; })
-      .addCase(fetchStations.fulfilled, (state, action) => {
-        state.loading = false;
-        state.stations = action.payload.stations;
-        state.pagination = action.payload.pagination;
-      })
-      .addCase(fetchStations.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Failed';
-      })
-      .addCase(fetchStationById.fulfilled, (state, action) => {
-        state.selectedStation = action.payload;
-      })
-      .addCase(createStation.fulfilled, (state, action) => {
-        state.stations.unshift(action.payload);
-      })
-      .addCase(updateStation.fulfilled, (state, action) => {
-        const index = state.stations.findIndex((s) => s.id === action.payload.id);
-        if (index !== -1) state.stations[index] = action.payload;
-        state.selectedStation = action.payload;
-      });
+  reducers: {},
+  extraReducers: (b) => {
+    b.addCase(fetchStations.pending, (s) => {
+      s.loading = true;
+      s.error = null;
+    });
+    b.addCase(fetchStations.fulfilled, (s, a) => {
+      s.loading = false;
+      s.rows = a.payload;
+    });
+    b.addCase(fetchStations.rejected, (s, a) => {
+      s.loading = false;
+      s.error = a.payload as string;
+    });
   },
 });
 
-export const { clearSelectedStation, updateStationStatus } = stationsSlice.actions;
-export default stationsSlice.reducer;
+export default slice.reducer;

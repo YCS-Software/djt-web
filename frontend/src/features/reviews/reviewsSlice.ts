@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { driversApi } from '../../services/api';
+import { reviewsApi } from '../../services/api';
 
 interface State {
   rows: any[];
@@ -9,32 +9,32 @@ interface State {
 
 const initialState: State = { rows: [], loading: false, error: null };
 
-export const fetchDrivers = createAsyncThunk(
-  'drivers/fetch',
+export const fetchReviews = createAsyncThunk(
+  'reviews/fetch',
   async (params: object | undefined, { rejectWithValue }) => {
     try {
-      const r = await driversApi.list(params);
+      const r = await reviewsApi.list(params);
       return r.data.rows as any[];
     } catch (e: any) {
-      return rejectWithValue(e.response?.data?.error || 'Failed to load drivers');
+      return rejectWithValue(e.response?.data?.error || 'Failed to load reviews');
     }
   }
 );
 
 const slice = createSlice({
-  name: 'drivers',
+  name: 'reviews',
   initialState,
   reducers: {},
   extraReducers: (b) => {
-    b.addCase(fetchDrivers.pending, (s) => {
+    b.addCase(fetchReviews.pending, (s) => {
       s.loading = true;
       s.error = null;
     });
-    b.addCase(fetchDrivers.fulfilled, (s, a) => {
+    b.addCase(fetchReviews.fulfilled, (s, a) => {
       s.loading = false;
       s.rows = a.payload;
     });
-    b.addCase(fetchDrivers.rejected, (s, a) => {
+    b.addCase(fetchReviews.rejected, (s, a) => {
       s.loading = false;
       s.error = a.payload as string;
     });
