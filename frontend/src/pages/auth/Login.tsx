@@ -12,17 +12,19 @@ import {
   IconButton,
   Typography,
 } from '@mui/material';
-import { Visibility, VisibilityOff, Email, Lock } from '@mui/icons-material';
+import {
+  Visibility,
+  VisibilityOff,
+  MailOutline,
+  LockOutlined,
+  ArrowForward,
+} from '@mui/icons-material';
 import { AppDispatch, RootState } from '../../store';
 import { login, clearError } from '../../features/auth/authSlice';
 
 const validationSchema = Yup.object({
-  email: Yup.string()
-    .email('Invalid email address')
-    .required('Email is required'),
-  password: Yup.string()
-    .min(6, 'Password must be at least 6 characters')
-    .required('Password is required'),
+  email: Yup.string().email('Invalid email address').required('Email is required'),
+  password: Yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
 });
 
 const Login: React.FC = () => {
@@ -32,10 +34,7 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const formik = useFormik({
-    initialValues: {
-      email: '',
-      password: '',
-    },
+    initialValues: { email: '', password: '' },
     validationSchema,
     onSubmit: async (values) => {
       dispatch(clearError());
@@ -48,17 +47,17 @@ const Login: React.FC = () => {
 
   return (
     <Box component="form" onSubmit={formik.handleSubmit} noValidate>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h4" fontWeight={700} gutterBottom>
+      <Box sx={{ textAlign: 'center', mb: 3 }}>
+        <Typography variant="h5" fontWeight={800} sx={{ color: '#0f2e22' }}>
           Welcome back
         </Typography>
-        <Typography variant="body2" color="text.secondary">
-          Sign in to the DJT EV admin console
+        <Typography variant="body2" sx={{ mt: 0.5, color: '#6b7280' }}>
+          Sign in to your admin account to continue
         </Typography>
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
           {error}
         </Alert>
       )}
@@ -67,8 +66,9 @@ const Login: React.FC = () => {
         fullWidth
         id="email"
         name="email"
-        label="Email"
+        label="Email address"
         type="email"
+        placeholder="you@company.com"
         value={formik.values.email}
         onChange={formik.handleChange}
         onBlur={formik.handleBlur}
@@ -78,7 +78,7 @@ const Login: React.FC = () => {
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <Email color="action" />
+              <MailOutline fontSize="small" sx={{ color: '#9aa5b1' }} />
             </InputAdornment>
           ),
         }}
@@ -90,6 +90,7 @@ const Login: React.FC = () => {
         name="password"
         label="Password"
         type={showPassword ? 'text' : 'password'}
+        placeholder="••••••••"
         value={formik.values.password}
         onChange={formik.handleChange}
         onBlur={formik.handleBlur}
@@ -99,16 +100,13 @@ const Login: React.FC = () => {
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <Lock color="action" />
+              <LockOutlined fontSize="small" sx={{ color: '#9aa5b1' }} />
             </InputAdornment>
           ),
           endAdornment: (
             <InputAdornment position="end">
-              <IconButton
-                onClick={() => setShowPassword(!showPassword)}
-                edge="end"
-              >
-                {showPassword ? <VisibilityOff /> : <Visibility />}
+              <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">
+                {showPassword ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />}
               </IconButton>
             </InputAdornment>
           ),
@@ -121,26 +119,22 @@ const Login: React.FC = () => {
         variant="contained"
         size="large"
         disabled={loading}
+        endIcon={!loading && <ArrowForward />}
         sx={{
           mt: 3,
-          mb: 1,
-          py: 1.25,
-          fontWeight: 600,
+          py: 1.3,
+          fontWeight: 700,
           fontSize: '1rem',
-          boxShadow: '0 8px 20px rgba(76,175,80,0.35)',
-          '&:hover': { boxShadow: '0 8px 24px rgba(76,175,80,0.45)' },
+          borderRadius: 2,
+          bgcolor: '#14532d',
+          boxShadow: '0 12px 26px rgba(20,83,45,0.30)',
+          '&:hover': { bgcolor: '#0f3d22', boxShadow: '0 12px 30px rgba(20,83,45,0.42)' },
         }}
       >
-        {loading ? 'Signing in...' : 'Sign In'}
+        {loading ? 'Signing in…' : 'Sign In'}
       </Button>
 
-      <Typography
-        variant="caption"
-        color="text.secondary"
-        align="center"
-        display="block"
-        sx={{ mt: 2 }}
-      >
+      <Typography variant="caption" align="center" display="block" sx={{ mt: 2, color: '#9aa5b1' }}>
         Authorized administrators only
       </Typography>
     </Box>

@@ -20,7 +20,7 @@ interface PageHeaderProps {
   backButton?: boolean;
 }
 
-const GREEN = '#3a7d44';
+const GREEN = '#14532d';
 const VALUE = '#2f3b52';
 const LABEL = '#8a94a6';
 
@@ -99,7 +99,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
           variant="contained"
           startIcon={action.icon || <Add />}
           onClick={action.onClick}
-          sx={{ bgcolor: GREEN, '&:hover': { bgcolor: '#2f6638' }, textTransform: 'none', fontWeight: 600 }}
+          sx={{ bgcolor: GREEN, '&:hover': { bgcolor: '#0f3d22' }, textTransform: 'none', fontWeight: 600 }}
         >
           {action.label}
         </Button>

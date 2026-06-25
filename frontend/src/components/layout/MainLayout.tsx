@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import {
@@ -12,31 +12,33 @@ import {
   Menu,
   MenuItem,
   Divider,
-  useMediaQuery,
-  useTheme,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
   Notifications as NotificationsIcon,
-  AccountCircle,
   Logout,
   Settings,
 } from '@mui/icons-material';
 import Sidebar from './Sidebar';
 import { RootState, AppDispatch } from '../../store';
 import { logout } from '../../features/auth/authSlice';
+import { fetchMenu } from '../../features/menu/menuSlice';
+import logo from '../../assets/djt-haika-logo.png';
 
 const drawerWidth = 260;
 
 const MainLayout: React.FC = () => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { user } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Load the role-based navigation menu from the API once authenticated.
+  useEffect(() => {
+    dispatch(fetchMenu());
+  }, [dispatch]);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -84,7 +86,7 @@ const MainLayout: React.FC = () => {
       '/logs/ocpp': 'OCPP Logs',
       '/settings': 'Settings',
     };
-    return titles[path] || 'EV Charging Admin';
+    return titles[path] || 'DJT EV Admin';
   };
 
   return (
@@ -95,8 +97,10 @@ const MainLayout: React.FC = () => {
         sx={{
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
-          bgcolor: 'background.paper',
-          color: 'text.primary',
+          bgcolor: '#0b261a',
+          color: '#e8f3ec',
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
+          boxShadow: 'none',
         }}
       >
         <Toolbar>
@@ -104,12 +108,18 @@ const MainLayout: React.FC = () => {
             color="inherit"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: 'none' } }}
+            sx={{ mr: 1.5, display: { md: 'none' } }}
           >
             <MenuIcon />
           </IconButton>
 
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+          <Box
+            component="img"
+            src={logo}
+            alt="DJT Haika"
+            sx={{ width: 30, height: 30, mr: 1.25, display: { xs: 'none', md: 'block' } }}
+          />
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1, fontWeight: 700 }}>
             {getPageTitle()}
           </Typography>
 
@@ -192,8 +202,10 @@ const MainLayout: React.FC = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
-          width: { md: `calc(100% - ${drawerWidth}px)` },
+          p: { xs: 1.5, sm: 2.5, md: 3 },
+          width: { xs: '100%', md: `calc(100% - ${drawerWidth}px)` },
+          maxWidth: '100%',
+          overflowX: 'hidden',
           minHeight: '100vh',
           bgcolor: 'background.default',
         }}

@@ -2,22 +2,24 @@ import { createTheme } from '@mui/material/styles';
 
 const theme = createTheme({
   palette: {
+    // DJT Haika brand green — applied consistently across the whole app.
     primary: {
-      main: '#4CAF50',
-      light: '#81C784',
-      dark: '#388E3C',
+      main: '#14532d',
+      light: '#2e7d32',
+      dark: '#0f3d22',
       contrastText: '#FFFFFF',
     },
     secondary: {
-      main: '#2196F3',
-      light: '#64B5F6',
-      dark: '#1976D2',
+      // Lime/gold accent for the deep-forest premium look.
+      main: '#b7791f',
+      light: '#d4a73a',
+      dark: '#92600f',
       contrastText: '#FFFFFF',
     },
     success: {
-      main: '#4CAF50',
-      light: '#81C784',
-      dark: '#388E3C',
+      main: '#14532d',
+      light: '#2e7d32',
+      dark: '#0f3d22',
     },
     warning: {
       main: '#FFC107',
@@ -35,13 +37,14 @@ const theme = createTheme({
       dark: '#1976D2',
     },
     background: {
-      default: '#F5F5F5',
+      default: '#f6f4ec',
       paper: '#FFFFFF',
     },
     text: {
-      primary: '#212121',
-      secondary: '#757575',
+      primary: '#2f3b52',
+      secondary: '#8a94a6',
     },
+    divider: '#eef0f3',
   },
   typography: {
     fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
@@ -110,7 +113,8 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           borderRadius: 12,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+          border: '1px solid #ece7d6',
+          boxShadow: '0 2px 14px rgba(20,83,45,0.06)',
         },
       },
     },

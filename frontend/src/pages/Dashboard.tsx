@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   Grid,
@@ -36,13 +36,26 @@ import { AppDispatch, RootState } from '../store';
 import { fetchAnalytics } from '../features/dashboard/dashboardSlice';
 
 // ── Palette (DJT green) ─────────────────────────────────────────────────────
-const GREEN = '#3a7d44';
-const GREEN_BAR = '#4f8a5b';
+const GREEN = '#14532d';
+const GREEN_BAR = '#2e7d32';
 const CARD_BORDER = '#eef0f3';
 const LABEL = '#8a94a6';
 const VALUE = '#2f3b52';
 const TITLE = '#5a6b7b';
 const DONUT_GREENS = ['#1b5e20', '#2e7d32', '#66bb6a', '#a5d6a7'];
+
+// Per-KPI accent gradients for a denser, more scannable card grid.
+const ACCENTS = [
+  ['#2e7d32', '#66bb6a'],
+  ['#1565c0', '#42a5f5'],
+  ['#6a1b9a', '#ab47bc'],
+  ['#00838f', '#26c6da'],
+  ['#ef6c00', '#ffa726'],
+  ['#ad1457', '#ec407a'],
+  ['#283593', '#5c6bc0'],
+  ['#4527a0', '#7e57c2'],
+  ['#00695c', '#26a69a'],
+];
 
 const cardSx = {
   border: `1px solid ${CARD_BORDER}`,
@@ -56,30 +69,49 @@ interface StatProps {
   icon: React.ReactNode;
   label: string;
   value: string | number;
+  accent: string[];
 }
-const StatCard: React.FC<StatProps> = ({ icon, label, value }) => (
-  <Card elevation={0} sx={cardSx}>
-    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2.5 }}>
+const StatCard: React.FC<StatProps> = ({ icon, label, value, accent }) => (
+  <Card
+    elevation={0}
+    sx={{
+      ...cardSx,
+      position: 'relative',
+      overflow: 'hidden',
+      transition: 'transform .15s ease, box-shadow .15s ease',
+      '&:hover': { transform: 'translateY(-2px)', boxShadow: '0 6px 18px rgba(0,0,0,0.08)' },
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        bottom: 0,
+        width: 4,
+        background: `linear-gradient(180deg, ${accent[0]}, ${accent[1]})`,
+      },
+    }}
+  >
+    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2.5, pl: 3 }}>
       <Box
         sx={{
-          width: 46,
-          height: 46,
-          borderRadius: 1.5,
-          bgcolor: '#eaf3ee',
+          width: 48,
+          height: 48,
+          borderRadius: 2,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: GREEN,
+          color: '#fff',
           flexShrink: 0,
+          background: `linear-gradient(135deg, ${accent[0]}, ${accent[1]})`,
         }}
       >
         {icon}
       </Box>
       <Box sx={{ minWidth: 0 }}>
-        <Typography sx={{ fontSize: 13, color: LABEL }} noWrap>
+        <Typography sx={{ fontSize: 12.5, color: LABEL, fontWeight: 500 }} noWrap>
           {label}
         </Typography>
-        <Typography sx={{ fontSize: 22, fontWeight: 700, color: VALUE, lineHeight: 1.2 }}>
+        <Typography sx={{ fontSize: 23, fontWeight: 800, color: VALUE, lineHeight: 1.2 }}>
           {value}
         </Typography>
       </Box>
@@ -98,9 +130,7 @@ const ChartCard: React.FC<ChartCardProps> = ({ title, average, showFilter = fals
   <Card elevation={0} sx={cardSx}>
     <CardContent>
       <Box display="flex" justifyContent="space-between" alignItems="center">
-        <Typography
-          sx={{ fontSize: 15, fontWeight: 600, color: TITLE, letterSpacing: 0.3 }}
-        >
+        <Typography sx={{ fontSize: 15, fontWeight: 600, color: TITLE, letterSpacing: 0.3 }}>
           {title}
         </Typography>
         {showFilter && <FilterAltOutlined sx={{ color: GREEN, fontSize: 20 }} />}
@@ -109,19 +139,20 @@ const ChartCard: React.FC<ChartCardProps> = ({ title, average, showFilter = fals
         <Chip
           label={average}
           size="small"
-          sx={{
-            mt: 1,
-            bgcolor: '#eaf3ee',
-            color: GREEN,
-            fontWeight: 600,
-            fontSize: 12,
-            borderRadius: 1,
-          }}
+          sx={{ mt: 1, bgcolor: '#ecfdf5', color: GREEN, fontWeight: 600, fontSize: 12, borderRadius: 1 }}
         />
       )}
       <Box mt={1}>{children}</Box>
     </CardContent>
   </Card>
+);
+
+const SectionLabel: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <Typography
+    sx={{ fontSize: 12, fontWeight: 800, letterSpacing: 1, color: '#9aa5b1', textTransform: 'uppercase', mb: 1.5 }}
+  >
+    {children}
+  </Typography>
 );
 
 const NoData: React.FC<{ height?: number }> = ({ height = 240 }) => (
@@ -131,11 +162,7 @@ const NoData: React.FC<{ height?: number }> = ({ height = 240 }) => (
 );
 
 // ── Apex option builders ────────────────────────────────────────────────────
-const barOptions = (
-  categories: string[],
-  color: string,
-  yFmt: (v: number) => string
-): ApexOptions => ({
+const barOptions = (categories: string[], color: string, yFmt: (v: number) => string): ApexOptions => ({
   chart: { type: 'bar', toolbar: { show: false }, fontFamily: 'inherit' },
   plotOptions: { bar: { columnWidth: '38%', borderRadius: 3 } },
   dataLabels: { enabled: false },
@@ -163,11 +190,7 @@ const donutOptions = (labels: string[], colors: string[]): ApexOptions => ({
   },
   plotOptions: { pie: { donut: { size: '68%' } } },
   stroke: { width: 2, colors: ['#fff'] },
-  legend: {
-    position: 'bottom',
-    fontSize: '13px',
-    itemMargin: { horizontal: 8, vertical: 2 },
-  },
+  legend: { position: 'bottom', fontSize: '13px', itemMargin: { horizontal: 8, vertical: 2 } },
   tooltip: { theme: 'light', y: { formatter: (v: number) => `${v}` } },
 });
 
@@ -178,8 +201,53 @@ const Dashboard: React.FC = () => {
   const [partnerOrg, setPartnerOrg] = useState('all');
 
   useEffect(() => {
-    dispatch(fetchAnalytics());
-  }, [dispatch]);
+    const range = timeRange === 'all' ? undefined : timeRange;
+    dispatch(fetchAnalytics(range ? { range } : undefined));
+  }, [dispatch, timeRange]);
+
+  const a = analytics;
+  const s = a?.summary;
+
+  // Memoize derived datasets so the heavy Apex grid does not recompute on every
+  // unrelated render (filter focus, hover, etc.).
+  const cats = (block?: { series: { date: string }[] }) => block?.series.map((p) => p.date) || [];
+  const vals = (block?: { series: { value: number }[] }) => block?.series.map((p) => p.value) || [];
+
+  const stats: StatProps[] = useMemo(
+    () => [
+      { icon: <BusinessCenterOutlined />, label: 'Partner Organizations', value: s?.partnerOrganizations ?? 0, accent: ACCENTS[0] },
+      { icon: <LocationOnOutlined />, label: 'Locations', value: s?.locations ?? 0, accent: ACCENTS[1] },
+      { icon: <GroupsOutlined />, label: 'Users', value: s?.users ?? 0, accent: ACCENTS[2] },
+      { icon: <EvStationOutlined />, label: 'Charging Stations', value: s?.chargingStations ?? 0, accent: ACCENTS[3] },
+      { icon: <PersonOutlineOutlined />, label: 'EV Drivers', value: s?.evDrivers ?? 0, accent: ACCENTS[4] },
+      { icon: <AccountBalanceWalletOutlined />, label: 'Remaining Wallet Balance', value: (s?.walletBalance ?? 0).toFixed(2), accent: ACCENTS[5] },
+      { icon: <ReceiptLongOutlined />, label: 'Charging Transaction Amount', value: (s?.transactionAmount ?? 0).toFixed(2), accent: ACCENTS[6] },
+      { icon: <BoltOutlined />, label: 'kWh Consumption', value: (s?.kwhConsumption ?? 0).toFixed(2), accent: ACCENTS[7] },
+      { icon: <FlashOnOutlined />, label: 'Wallet Topup Count', value: s?.walletTopupCount ?? 0, accent: ACCENTS[8] },
+    ],
+    [s]
+  );
+
+  const charts = useMemo(() => {
+    const sum = (block?: { series: { value: number }[] }) =>
+      (block?.series || []).reduce((t, p) => t + p.value, 0);
+    return {
+      uptime: { options: barOptions(cats(a?.avgUptime), GREEN_BAR, (v) => `${v.toFixed(2)} %`), data: vals(a?.avgUptime) },
+      chargeTime: { options: barOptions(cats(a?.avgChargeTime), GREEN_BAR, (v) => `${v.toFixed(2)} hr.`), data: vals(a?.avgChargeTime) },
+      idleTime: { options: barOptions(cats(a?.avgIdleTime), GREEN_BAR, (v) => `${v.toFixed(2)} hr.`), data: vals(a?.avgIdleTime) },
+      failed: { options: barOptions(cats(a?.failedSessions), GREEN_BAR, (v) => `${v}`), data: vals(a?.failedSessions) },
+      consumption: {
+        options: {
+          ...barOptions(cats(a?.consumption), GREEN_BAR, (v) => `${v.toFixed(2)}`),
+          chart: { type: 'area' as const, toolbar: { show: false }, fontFamily: 'inherit' },
+          stroke: { curve: 'smooth' as const, width: 2 },
+          fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.05 } },
+        } as ApexOptions,
+        data: vals(a?.consumption),
+        total: sum(a?.consumption),
+      },
+    };
+  }, [a]);
 
   if (loading && !analytics) {
     return (
@@ -189,55 +257,20 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  const a = analytics;
-  const s = a?.summary;
-  const cats = (block?: { series: { date: string }[] }) =>
-    block?.series.map((p) => p.date) || [];
-  const vals = (block?: { series: { value: number }[] }) =>
-    block?.series.map((p) => p.value) || [];
-  const sum = (block?: { series: { value: number }[] }) =>
-    (block?.series || []).reduce((t, p) => t + p.value, 0);
-
-  // ── KPI cards ──
-  const stats: StatProps[] = [
-    { icon: <BusinessCenterOutlined />, label: 'Partner Organizations', value: s?.partnerOrganizations ?? 0 },
-    { icon: <LocationOnOutlined />, label: 'Locations', value: s?.locations ?? 0 },
-    { icon: <GroupsOutlined />, label: 'Users', value: s?.users ?? 0 },
-    { icon: <EvStationOutlined />, label: 'Charging Stations', value: s?.chargingStations ?? 0 },
-    { icon: <PersonOutlineOutlined />, label: 'EV Drivers', value: s?.evDrivers ?? 0 },
-    { icon: <AccountBalanceWalletOutlined />, label: 'Remaining Wallet Balance', value: (s?.walletBalance ?? 0).toFixed(2) },
-    { icon: <ReceiptLongOutlined />, label: 'Charging Transaction Amount', value: (s?.transactionAmount ?? 0).toFixed(2) },
-    { icon: <BoltOutlined />, label: 'kWh Consumption', value: (s?.kwhConsumption ?? 0).toFixed(2) },
-    { icon: <FlashOnOutlined />, label: 'Wallet Topup Count', value: s?.walletTopupCount ?? 0 },
-  ];
-
   // ── Donut datasets ──
   const sessionTotal = (a?.sessionCount.finished ?? 0) + (a?.sessionCount.rejected ?? 0);
   const downtime = a?.chargerDowntime;
-  const downtimeTotal = downtime
-    ? downtime.lt12 + downtime.h12_24 + downtime.h24_48 + downtime.gt48
-    : 0;
+  const downtimeTotal = downtime ? downtime.lt12 + downtime.h12_24 + downtime.h24_48 + downtime.gt48 : 0;
   const statusTotal = (a?.stationsStatus || []).reduce((t, x) => t + x.count, 0);
 
   return (
     <Box>
       {/* Breadcrumb + filters */}
-      <Box
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        flexWrap="wrap"
-        gap={2}
-        mb={3}
-      >
+      <Box display="flex" justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={2} mb={3}>
         <Box>
           <Breadcrumbs separator={<NavigateNext fontSize="small" />} sx={{ fontSize: 14 }}>
             <Typography sx={{ fontWeight: 700, color: VALUE }}>Dashboard</Typography>
-            <Link
-              underline="none"
-              color="inherit"
-              sx={{ display: 'flex', alignItems: 'center', color: LABEL }}
-            >
+            <Link underline="none" color="inherit" sx={{ display: 'flex', alignItems: 'center', color: LABEL }}>
               <HomeOutlined sx={{ fontSize: 18 }} />
             </Link>
             <Typography sx={{ color: GREEN, fontWeight: 600 }}>Dashboard</Typography>
@@ -246,11 +279,7 @@ const Dashboard: React.FC = () => {
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <FormControl size="small" sx={{ minWidth: 180 }}>
             <InputLabel>Select Time Range</InputLabel>
-            <Select
-              value={timeRange}
-              label="Select Time Range"
-              onChange={(e) => setTimeRange(e.target.value)}
-            >
+            <Select value={timeRange} label="Select Time Range" onChange={(e) => setTimeRange(e.target.value)}>
               <MenuItem value="all">All Time</MenuItem>
               <MenuItem value="today">Today</MenuItem>
               <MenuItem value="7d">Last 7 Days</MenuItem>
@@ -259,19 +288,16 @@ const Dashboard: React.FC = () => {
           </FormControl>
           <FormControl size="small" sx={{ minWidth: 260 }}>
             <InputLabel>Select Partner Organization</InputLabel>
-            <Select
-              value={partnerOrg}
-              label="Select Partner Organization"
-              onChange={(e) => setPartnerOrg(e.target.value)}
-            >
+            <Select value={partnerOrg} label="Select Partner Organization" onChange={(e) => setPartnerOrg(e.target.value)}>
               <MenuItem value="all">All Organizations</MenuItem>
             </Select>
           </FormControl>
         </Stack>
       </Box>
 
-      {/* KPI grid (3 x 3) */}
-      <Grid container spacing={2.5} mb={1}>
+      {/* Overview KPIs */}
+      <SectionLabel>Overview</SectionLabel>
+      <Grid container spacing={2.5} mb={3}>
         {stats.map((st) => (
           <Grid item xs={12} sm={6} md={4} key={st.label}>
             <StatCard {...st} />
@@ -279,89 +305,38 @@ const Dashboard: React.FC = () => {
         ))}
       </Grid>
 
-      <Box sx={{ borderBottom: `1px solid ${CARD_BORDER}`, my: 3 }} />
-
-      {/* Charts row 1: uptime / charge time / idle time */}
+      {/* Performance */}
+      <SectionLabel>Performance · Last 7 Days</SectionLabel>
       <Grid container spacing={2.5} mb={2.5}>
         <Grid item xs={12} md={4}>
-          <ChartCard
-            title="AVG UPTIME (Last 7 Days)"
-            average={`AVERAGE : ${(a?.avgUptime.average ?? 0).toFixed(2)}%`}
-            showFilter
-          >
-            <Chart
-              options={barOptions(cats(a?.avgUptime), GREEN_BAR, (v) => `${v.toFixed(2)} %`)}
-              series={[{ name: 'Uptime', data: vals(a?.avgUptime) }]}
-              type="bar"
-              height={300}
-            />
+          <ChartCard title="AVG UPTIME" average={`AVERAGE : ${(a?.avgUptime.average ?? 0).toFixed(2)}%`} showFilter>
+            <Chart options={charts.uptime.options} series={[{ name: 'Uptime', data: charts.uptime.data }]} type="bar" height={300} />
           </ChartCard>
         </Grid>
         <Grid item xs={12} md={4}>
-          <ChartCard
-            title="AVG CHARGE TIME (Last 7 Days)"
-            average={`AVERAGE : ${(a?.avgChargeTime.average ?? 0).toFixed(2)} hr`}
-            showFilter
-          >
-            <Chart
-              options={barOptions(cats(a?.avgChargeTime), GREEN_BAR, (v) => `${v.toFixed(2)} hr.`)}
-              series={[{ name: 'Charge time', data: vals(a?.avgChargeTime) }]}
-              type="bar"
-              height={300}
-            />
+          <ChartCard title="AVG CHARGE TIME" average={`AVERAGE : ${(a?.avgChargeTime.average ?? 0).toFixed(2)} hr`} showFilter>
+            <Chart options={charts.chargeTime.options} series={[{ name: 'Charge time', data: charts.chargeTime.data }]} type="bar" height={300} />
           </ChartCard>
         </Grid>
         <Grid item xs={12} md={4}>
-          <ChartCard
-            title="AVG IDLE TIME (Last 7 Days)"
-            average={`AVERAGE : ${(a?.avgIdleTime.average ?? 0).toFixed(2)} hr`}
-            showFilter
-          >
-            <Chart
-              options={barOptions(cats(a?.avgIdleTime), GREEN_BAR, (v) => `${v.toFixed(2)} hr.`)}
-              series={[{ name: 'Idle time', data: vals(a?.avgIdleTime) }]}
-              type="bar"
-              height={300}
-            />
+          <ChartCard title="AVG IDLE TIME" average={`AVERAGE : ${(a?.avgIdleTime.average ?? 0).toFixed(2)} hr`} showFilter>
+            <Chart options={charts.idleTime.options} series={[{ name: 'Idle time', data: charts.idleTime.data }]} type="bar" height={300} />
           </ChartCard>
         </Grid>
       </Grid>
 
-      {/* Charts row 2: failed sessions / consumption / session count donut */}
       <Grid container spacing={2.5} mb={2.5}>
         <Grid item xs={12} md={4}>
-          <ChartCard title="FAILED SESSIONS (Last 7 Days)" showFilter>
-            <Chart
-              options={barOptions(cats(a?.failedSessions), GREEN_BAR, (v) => `${v}`)}
-              series={[{ name: 'Failed', data: vals(a?.failedSessions) }]}
-              type="bar"
-              height={300}
-            />
+          <ChartCard title="FAILED SESSIONS" showFilter>
+            <Chart options={charts.failed.options} series={[{ name: 'Failed', data: charts.failed.data }]} type="bar" height={300} />
           </ChartCard>
         </Grid>
         <Grid item xs={12} md={4}>
-          <ChartCard
-            title="CONSUMPTION (Last 7 Days)"
-            average={`AVERAGE : ${(a?.consumption.average ?? 0).toFixed(2)} kWh`}
-            showFilter
-          >
-            {sum(a?.consumption) === 0 ? (
+          <ChartCard title="CONSUMPTION" average={`AVERAGE : ${(a?.consumption.average ?? 0).toFixed(2)} kWh`} showFilter>
+            {charts.consumption.total === 0 ? (
               <NoData height={300} />
             ) : (
-              <Chart
-                options={{
-                  ...barOptions(cats(a?.consumption), GREEN_BAR, (v) => `${v.toFixed(2)}`),
-                  chart: { type: 'area', toolbar: { show: false }, fontFamily: 'inherit' },
-                  stroke: { curve: 'smooth', width: 2 },
-                  fill: {
-                    type: 'gradient',
-                    gradient: { opacityFrom: 0.4, opacityTo: 0.05 },
-                  },
-                }}
-                series={[{ name: 'kWh', data: vals(a?.consumption) }]}
-                type="area"
-                height={300}
-              />
+              <Chart options={charts.consumption.options} series={[{ name: 'kWh', data: charts.consumption.data }]} type="area" height={300} />
             )}
           </ChartCard>
         </Grid>
@@ -381,7 +356,8 @@ const Dashboard: React.FC = () => {
         </Grid>
       </Grid>
 
-      {/* Charts row 3: charger downtime / stations status donuts */}
+      {/* Reliability */}
+      <SectionLabel>Reliability</SectionLabel>
       <Grid container spacing={2.5} mb={2.5}>
         <Grid item xs={12} md={6}>
           <ChartCard title="CHARGER DOWNTIME">
@@ -389,16 +365,8 @@ const Dashboard: React.FC = () => {
               <NoData height={340} />
             ) : (
               <Chart
-                options={donutOptions(
-                  ['< 12 Hours', '12-24 Hours', '24-48 Hours', '>48 Hours'],
-                  DONUT_GREENS
-                )}
-                series={[
-                  downtime!.lt12,
-                  downtime!.h12_24,
-                  downtime!.h24_48,
-                  downtime!.gt48,
-                ]}
+                options={donutOptions(['< 12 Hours', '12-24 Hours', '24-48 Hours', '>48 Hours'], DONUT_GREENS)}
+                series={[downtime!.lt12, downtime!.h12_24, downtime!.h24_48, downtime!.gt48]}
                 type="donut"
                 height={340}
               />
@@ -411,10 +379,7 @@ const Dashboard: React.FC = () => {
               <NoData height={340} />
             ) : (
               <Chart
-                options={donutOptions(
-                  (a?.stationsStatus || []).map((x) => x.status),
-                  DONUT_GREENS
-                )}
+                options={donutOptions((a?.stationsStatus || []).map((x) => x.status), DONUT_GREENS)}
                 series={(a?.stationsStatus || []).map((x) => x.count)}
                 type="donut"
                 height={340}

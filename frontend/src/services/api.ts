@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosError, AxiosRequestConfig } from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 // Create axios instance
 const api: AxiosInstance = axios.create({
@@ -65,7 +65,7 @@ api.interceptors.response.use(
   }
 );
 
-// API methods
+// ── Auth ────────────────────────────────────────────────────────────────────
 export const authApi = {
   login: (email: string, password: string) =>
     api.post('/auth/login', { email, password }),
@@ -77,135 +77,137 @@ export const authApi = {
     api.post('/auth/change-password', { currentPassword, newPassword }),
 };
 
+// All admin-console resource endpoints live under the /web namespace served by
+// djt-app (api/routes/web/webRtr.js), behind verifyToken + isAdmin.
 export const usersApi = {
   list: (params?: object) => api.get('/web/users', { params }),
   getById: (id: string) => api.get(`/web/users/${id}`),
-  create: (data: object) => api.post('/users', data),
-  update: (id: string, data: object) => api.put(`/users/${id}`, data),
-  delete: (id: string) => api.delete(`/users/${id}`),
+  create: (data: object) => api.post('/web/users', data),
+  update: (id: string, data: object) => api.put(`/web/users/${id}`, data),
+  delete: (id: string) => api.delete(`/web/users/${id}`),
 };
 
 export const partnersApi = {
   list: (params?: object) => api.get('/web/partners', { params }),
   getById: (id: string) => api.get(`/web/partners/${id}`),
-  create: (data: object) => api.post('/partners', data),
-  update: (id: string, data: object) => api.put(`/partners/${id}`, data),
-  delete: (id: string) => api.delete(`/partners/${id}`),
-  getWallet: (id: string) => api.get(`/partners/${id}/wallet`),
-  getStats: (id: string) => api.get(`/partners/${id}/stats`),
+  create: (data: object) => api.post('/web/partners', data),
+  update: (id: string, data: object) => api.put(`/web/partners/${id}`, data),
+  delete: (id: string) => api.delete(`/web/partners/${id}`),
+  getWallet: (id: string) => api.get(`/web/partners/${id}/wallet`),
+  getStats: (id: string) => api.get(`/web/partners/${id}/stats`),
 };
 
 export const locationsApi = {
   list: (params?: object) => api.get('/web/locations', { params }),
   getById: (id: string) => api.get(`/web/locations/${id}`),
-  create: (data: object) => api.post('/locations', data),
-  update: (id: string, data: object) => api.put(`/locations/${id}`, data),
-  delete: (id: string) => api.delete(`/locations/${id}`),
+  create: (data: object) => api.post('/web/locations', data),
+  update: (id: string, data: object) => api.put(`/web/locations/${id}`, data),
+  delete: (id: string) => api.delete(`/web/locations/${id}`),
   getNearby: (lat: number, lng: number, radius?: number) =>
-    api.get('/locations/nearby', { params: { lat, lng, radius } }),
+    api.get('/web/locations/nearby', { params: { lat, lng, radius } }),
 };
 
 export const stationsApi = {
   list: (params?: object) => api.get('/web/stations', { params }),
   getById: (id: string) => api.get(`/web/stations/${id}`),
-  create: (data: object) => api.post('/stations', data),
-  update: (id: string, data: object) => api.put(`/stations/${id}`, data),
-  delete: (id: string) => api.delete(`/stations/${id}`),
-  reset: (id: string, type?: string) => api.post(`/stations/${id}/reset`, { type }),
+  create: (data: object) => api.post('/web/stations', data),
+  update: (id: string, data: object) => api.put(`/web/stations/${id}`, data),
+  delete: (id: string) => api.delete(`/web/stations/${id}`),
+  reset: (id: string, type?: string) => api.post(`/web/stations/${id}/reset`, { type }),
   remoteStart: (id: string, connectorId: number, idTag: string) =>
-    api.post(`/stations/${id}/remote-start`, { connectorId, idTag }),
+    api.post(`/web/stations/${id}/remote-start`, { connectorId, idTag }),
   remoteStop: (id: string, sessionId: string) =>
-    api.post(`/stations/${id}/remote-stop`, { sessionId }),
-  getStats: (id: string) => api.get(`/stations/${id}/stats`),
+    api.post(`/web/stations/${id}/remote-stop`, { sessionId }),
+  getStats: (id: string) => api.get(`/web/stations/${id}/stats`),
 };
 
 export const connectorsApi = {
-  list: (params?: object) => api.get('/connectors', { params }),
-  getById: (id: string) => api.get(`/connectors/${id}`),
-  create: (data: object) => api.post('/connectors', data),
-  update: (id: string, data: object) => api.put(`/connectors/${id}`, data),
-  delete: (id: string) => api.delete(`/connectors/${id}`),
-  regenerateQR: (id: string) => api.post(`/connectors/${id}/regenerate-qr`),
+  list: (params?: object) => api.get('/web/connectors', { params }),
+  getById: (id: string) => api.get(`/web/connectors/${id}`),
+  create: (data: object) => api.post('/web/connectors', data),
+  update: (id: string, data: object) => api.put(`/web/connectors/${id}`, data),
+  delete: (id: string) => api.delete(`/web/connectors/${id}`),
+  regenerateQR: (id: string) => api.post(`/web/connectors/${id}/regenerate-qr`),
 };
 
 export const driversApi = {
   list: (params?: object) => api.get('/web/drivers', { params }),
   getById: (id: string) => api.get(`/web/drivers/${id}`),
-  create: (data: object) => api.post('/drivers', data),
-  update: (id: string, data: object) => api.put(`/drivers/${id}`, data),
-  delete: (id: string) => api.delete(`/drivers/${id}`),
-  getWallet: (id: string) => api.get(`/drivers/${id}/wallet`),
+  create: (data: object) => api.post('/web/drivers', data),
+  update: (id: string, data: object) => api.put(`/web/drivers/${id}`, data),
+  delete: (id: string) => api.delete(`/web/drivers/${id}`),
+  getWallet: (id: string) => api.get(`/web/drivers/${id}/wallet`),
   topupWallet: (id: string, amount: number) =>
-    api.post(`/drivers/${id}/wallet/topup`, { amount }),
+    api.post(`/web/drivers/${id}/wallet/topup`, { amount }),
   getSessions: (id: string, params?: object) =>
-    api.get(`/drivers/${id}/sessions`, { params }),
-  getStats: (id: string) => api.get(`/drivers/${id}/stats`),
+    api.get(`/web/drivers/${id}/sessions`, { params }),
+  getStats: (id: string) => api.get(`/web/drivers/${id}/stats`),
 };
 
 export const sessionsApi = {
-  list: (params?: object) => api.get('/sessions', { params }),
-  getById: (id: string) => api.get(`/sessions/${id}`),
-  getActive: (params?: object) => api.get('/sessions/active', { params }),
-  stop: (id: string) => api.post(`/sessions/${id}/stop`),
-  getMeterValues: (id: string) => api.get(`/sessions/${id}/meter-values`),
-  getStats: (params?: object) => api.get('/sessions/stats', { params }),
+  list: (params?: object) => api.get('/web/sessions', { params }),
+  getById: (id: string) => api.get(`/web/sessions/${id}`),
+  getActive: (params?: object) => api.get('/web/live-sessions', { params }),
+  stop: (id: string) => api.post(`/web/live-sessions/${id}/stop`),
+  getMeterValues: (id: string) => api.get(`/web/sessions/${id}/meter-values`),
+  getStats: (params?: object) => api.get('/web/sessions/stats', { params }),
 };
 
 export const tariffsApi = {
-  list: (params?: object) => api.get('/tariffs', { params }),
-  getById: (id: string) => api.get(`/tariffs/${id}`),
-  create: (data: object) => api.post('/tariffs', data),
-  update: (id: string, data: object) => api.put(`/tariffs/${id}`, data),
-  delete: (id: string) => api.delete(`/tariffs/${id}`),
+  list: (params?: object) => api.get('/web/tariffs', { params }),
+  getById: (id: string) => api.get(`/web/tariffs/${id}`),
+  create: (data: object) => api.post('/web/tariffs', data),
+  update: (id: string, data: object) => api.put(`/web/tariffs/${id}`, data),
+  delete: (id: string) => api.delete(`/web/tariffs/${id}`),
   calculateCost: (id: string, data: object) =>
-    api.post(`/tariffs/${id}/calculate`, data),
+    api.post(`/web/tariffs/${id}/calculate`, data),
 };
 
 export const reservationsApi = {
   list: (params?: object) => api.get('/web/reservations', { params }),
   getById: (id: string) => api.get(`/web/reservations/${id}`),
-  create: (data: object) => api.post('/reservations', data),
+  create: (data: object) => api.post('/web/reservations', data),
   cancel: (id: string, reason?: string) =>
-    api.post(`/reservations/${id}/cancel`, { reason }),
+    api.post(`/web/reservations/${id}/cancel`, { reason }),
   getAvailableSlots: (connectorId: string, date: string) =>
-    api.get('/reservations/available-slots', { params: { connectorId, date } }),
+    api.get('/web/reservations/available-slots', { params: { connectorId, date } }),
 };
 
 export const cardsApi = {
   list: (params?: object) => api.get('/web/cards', { params }),
   getById: (id: string) => api.get(`/web/cards/${id}`),
-  create: (data: object) => api.post('/cards', data),
-  update: (id: string, data: object) => api.put(`/cards/${id}`, data),
-  block: (id: string, reason?: string) => api.post(`/cards/${id}/block`, { reason }),
-  unblock: (id: string) => api.post(`/cards/${id}/unblock`),
-  delete: (id: string) => api.delete(`/cards/${id}`),
+  create: (data: object) => api.post('/web/cards', data),
+  update: (id: string, data: object) => api.put(`/web/cards/${id}`, data),
+  block: (id: string, reason?: string) => api.post(`/web/cards/${id}/block`, { reason }),
+  unblock: (id: string) => api.post(`/web/cards/${id}/unblock`),
+  delete: (id: string) => api.delete(`/web/cards/${id}`),
 };
 
 export const disputesApi = {
   list: (params?: object) => api.get('/web/disputes', { params }),
   getById: (id: string) => api.get(`/web/disputes/${id}`),
-  create: (data: object) => api.post('/disputes', data),
-  update: (id: string, data: object) => api.put(`/disputes/${id}`, data),
-  resolve: (id: string, data: object) => api.post(`/disputes/${id}/resolve`, data),
+  create: (data: object) => api.post('/web/disputes', data),
+  update: (id: string, data: object) => api.put(`/web/disputes/${id}`, data),
+  resolve: (id: string, data: object) => api.post(`/web/disputes/${id}/resolve`, data),
 };
 
 export const couponsApi = {
   list: (params?: object) => api.get('/web/coupons', { params }),
   getById: (id: string) => api.get(`/web/coupons/${id}`),
-  create: (data: object) => api.post('/coupons', data),
-  update: (id: string, data: object) => api.put(`/coupons/${id}`, data),
-  delete: (id: string) => api.delete(`/coupons/${id}`),
+  create: (data: object) => api.post('/web/coupons', data),
+  update: (id: string, data: object) => api.put(`/web/coupons/${id}`, data),
+  delete: (id: string) => api.delete(`/web/coupons/${id}`),
   validate: (code: string, orderAmount?: number) =>
-    api.post('/coupons/validate', { code, orderAmount }),
+    api.post('/web/coupons/validate', { code, orderAmount }),
 };
 
 export const reviewsApi = {
   list: (params?: object) => api.get('/web/reviews', { params }),
   getById: (id: string) => api.get(`/web/reviews/${id}`),
-  reply: (id: string, reply: string) => api.post(`/reviews/${id}/reply`, { reply }),
-  delete: (id: string) => api.delete(`/reviews/${id}`),
+  reply: (id: string, reply: string) => api.post(`/web/reviews/${id}/reply`, { reply }),
+  delete: (id: string) => api.delete(`/web/reviews/${id}`),
   getByStation: (stationId: string, params?: object) =>
-    api.get(`/reviews/station/${stationId}`, { params }),
+    api.get(`/web/reviews/station/${stationId}`, { params }),
 };
 
 export const transactionsApi = {
@@ -218,19 +220,14 @@ export const schedulesApi = {
   getById: (id: string) => api.get(`/web/schedules/${id}`),
 };
 
+// Report builder (djt-app): meta lists report types + columns; generate runs one.
 export const reportsApi = {
   list: (params?: object) => api.get('/web/reports', { params }),
-  sessions: (params?: object) => api.get('/reports/sessions', { params }),
-  revenue: (params?: object) => api.get('/reports/revenue', { params }),
-  energy: (params?: object) => api.get('/reports/energy', { params }),
-  utilization: (params?: object) => api.get('/reports/utilization', { params }),
-  driverActivity: (params?: object) => api.get('/reports/driver-activity', { params }),
-  settlement: (params?: object) => api.get('/reports/settlement', { params }),
+  meta: () => api.get('/web/reports/meta'),
+  generate: (params: object) => api.get('/web/reports/generate', { params }),
 };
 
-// Admin web-console dashboard endpoints live under the /web namespace
-// (djt-app api/routes/web/webRtr.js), separate from the per-user mobile
-// /dashboard routes.
+// Admin web-console dashboard endpoints live under the /web namespace.
 export const dashboardApi = {
   analytics: (params?: object) => api.get('/web/dashboard/analytics', { params }),
   overview: (params?: object) => api.get('/web/dashboard/overview', { params }),
@@ -242,10 +239,57 @@ export const dashboardApi = {
 };
 
 export const logsApi = {
-  audit: (params?: object) => api.get('/audit-logs', { params }),
-  auditById: (id: string) => api.get(`/audit-logs/${id}`),
-  ocpp: (params?: object) => api.get('/ocpp-logs', { params }),
-  ocppById: (id: string) => api.get(`/ocpp-logs/${id}`),
+  audit: (params?: object) => api.get('/web/audit-logs', { params }),
+  auditById: (id: string) => api.get(`/web/audit-logs/${id}`),
+  ocpp: (params?: object) => api.get('/web/server-logs', { params }),
+  ocppById: (id: string) => api.get(`/web/server-logs/${id}`),
+};
+
+// ── DJT EV menu resources (mirrors djt-ev.web.app) ──────────────────────────
+// Every operation is under the /web admin namespace served by djt-app.
+const crud = (base: string) => ({
+  list: (params?: object) => api.get(`/web/${base}`, { params }),
+  getById: (id: string) => api.get(`/web/${base}/${id}`),
+  create: (data: object) => api.post(`/web/${base}`, data),
+  update: (id: string, data: object) => api.put(`/web/${base}/${id}`, data),
+  delete: (id: string) => api.delete(`/web/${base}/${id}`),
+});
+
+export const businessApi = crud('businesses');
+export const settlementsApi = {
+  ...crud('settlements'),
+  markSettled: (id: string, data?: object) => api.post(`/web/settlements/${id}/settle`, data || {}),
+};
+export const subscriptionsApi = crud('subscriptions');
+export const memberGroupsApi = crud('member-groups');
+export const courtesySessionsApi = crud('courtesy-sessions');
+export const agentsApi = crud('agents');
+export const cdrApi = { list: (params?: object) => api.get('/web/cdr', { params }) };
+export const emspTokensApi = crud('emsp-tokens');
+export const downtimeApi = { list: (params?: object) => api.get('/web/downtime', { params }) };
+export const smartSchedulingApi = crud('smart-scheduling');
+export const staticDataApi = { list: (params?: object) => api.get('/web/static-data', { params }) };
+export const configurationsApi = {
+  list: (params?: object) => api.get('/web/configurations', { params }),
+  get: () => api.get('/web/configurations'),
+  save: (data: object) => api.put('/web/configurations', data),
+};
+export const connectionsApi = { list: (params?: object) => api.get('/web/connections', { params }) };
+export const bulkRemoteApi = {
+  list: (params?: object) => api.get('/web/stations', { params }),
+  execute: (data: object) => api.post('/web/stations/bulk-remote', data),
+};
+export const instructionsApi = { list: (params?: object) => api.get('/web/instructions', { params }) };
+export const accessControlApi = crud('roles');
+export const productsLinkApi = crud('products');
+export const settingsApi = {
+  get: (scope: string) => api.get(`/web/settings/${scope}`),
+  save: (scope: string, data: object) => api.put(`/web/settings/${scope}`, data),
+};
+
+// Role-based navigation menu for the logged-in admin (login-based sidebar).
+export const menuApi = {
+  get: () => api.get('/web/menu'),
 };
 
 export default api;

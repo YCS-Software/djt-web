@@ -16,6 +16,7 @@ import reviewsReducer from '../features/reviews/reviewsSlice';
 import couponsReducer from '../features/coupons/couponsSlice';
 import reportsReducer from '../features/reports/reportsSlice';
 import disputesReducer from '../features/disputes/disputesSlice';
+import menuReducer from '../features/menu/menuSlice';
 import uiReducer from '../features/ui/uiSlice';
 
 export const store = configureStore({
@@ -37,6 +38,7 @@ export const store = configureStore({
     coupons: couponsReducer,
     reports: reportsReducer,
     disputes: disputesReducer,
+    menu: menuReducer,
     ui: uiReducer,
   },
   middleware: (getDefaultMiddleware) =>

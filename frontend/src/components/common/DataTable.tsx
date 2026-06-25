@@ -6,8 +6,20 @@ import {
   GridToolbar,
   GridPaginationModel,
   GridRenderCellParams,
+  GridOverlay,
 } from '@mui/x-data-grid';
-import { Box, Paper, Chip } from '@mui/material';
+import { Box, Paper, Chip, Typography } from '@mui/material';
+import { InboxOutlined } from '@mui/icons-material';
+
+// Polished empty state shown when a grid has no rows.
+const NoRowsOverlay: React.FC = () => (
+  <GridOverlay>
+    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1, color: '#9aa5b1' }}>
+      <InboxOutlined sx={{ fontSize: 44 }} />
+      <Typography sx={{ fontSize: 14, fontWeight: 500 }}>No data available</Typography>
+    </Box>
+  </GridOverlay>
+);
 
 interface DataTableProps {
   rows: GridRowsProp;
@@ -35,7 +47,7 @@ const statusColor = (raw: any): { bg: string; fg: string } => {
     return { bg: 'rgba(211,47,47,0.12)', fg: '#c62828' };
   if (/(pending|unknown|planned|created|processing|scheduled)/.test(v))
     return { bg: 'rgba(237,108,2,0.14)', fg: '#e65100' };
-  return { bg: 'rgba(58,125,68,0.10)', fg: '#3a7d44' };
+  return { bg: 'rgba(20,83,45,0.10)', fg: '#14532d' };
 };
 
 const StatusChip: React.FC<{ value: any }> = ({ value }) => {
@@ -107,7 +119,7 @@ const DataTable: React.FC<DataTableProps> = ({
           }}
           onRowClick={onRowClick}
           getRowId={getRowId || ((row) => row.id)}
-          slots={toolbar ? { toolbar: GridToolbar } : {}}
+          slots={{ ...(toolbar ? { toolbar: GridToolbar } : {}), noRowsOverlay: NoRowsOverlay }}
           slotProps={{
             toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 400 } },
           }}
@@ -122,7 +134,7 @@ const DataTable: React.FC<DataTableProps> = ({
             '& .MuiDataGrid-columnHeaderTitle': { fontWeight: 700 },
             '& .MuiDataGrid-cell': { borderColor: '#f0f2f4' },
             '& .MuiDataGrid-row:hover': {
-              bgcolor: 'rgba(58,125,68,0.05)',
+              bgcolor: 'rgba(20,83,45,0.05)',
               cursor: onRowClick ? 'pointer' : 'default',
             },
             '& .MuiDataGrid-footerContainer': { borderColor: '#eef0f3' },
