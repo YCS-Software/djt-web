@@ -47,26 +47,8 @@ sleep 10
 # Check service health
 echo -e "${YELLOW}Checking service health...${NC}"
 
-# Check postgres
-if docker-compose exec -T postgres pg_isready -U postgres > /dev/null 2>&1; then
-    echo -e "${GREEN}✓ PostgreSQL is healthy${NC}"
-else
-    echo -e "${RED}✗ PostgreSQL is not healthy${NC}"
-fi
-
-# Check redis
-if docker-compose exec -T redis redis-cli ping > /dev/null 2>&1; then
-    echo -e "${GREEN}✓ Redis is healthy${NC}"
-else
-    echo -e "${RED}✗ Redis is not healthy${NC}"
-fi
-
-# Check backend
-if curl -s http://localhost:3000/health > /dev/null 2>&1; then
-    echo -e "${GREEN}✓ Backend is healthy${NC}"
-else
-    echo -e "${RED}✗ Backend is not healthy${NC}"
-fi
+# NOTE: The backend API + OCPP server is the shared DJT-App server, deployed
+# separately from this repo; only the admin frontend/nginx are deployed here.
 
 # Check frontend
 if curl -s http://localhost:3001/health > /dev/null 2>&1; then
@@ -79,7 +61,6 @@ echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}  Deployment Complete!${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo ""
-echo -e "Frontend: http://localhost:80"
-echo -e "Backend API: http://localhost:3000"
-echo -e "OCPP Server: ws://localhost:9000/ocpp"
+echo -e "Admin panel: http://localhost:80"
+echo -e "API (shared DJT-App server): set via API_UPSTREAM"
 echo ""

@@ -1,83 +1,12 @@
 version: '3.8'
 
+# NOTE: The backend API is the shared DJT-App server (it lives in the DJT-App
+# repo and is deployed separately). This compose file only builds/serves the
+# admin frontend and an nginx reverse proxy that forwards /api to that shared
+# server. Set API_UPSTREAM (host:port) to point at it.
+
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: evcharge-postgres
-    environment:
-      POSTGRES_USER: ${DB_USER:-postgres}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres123}
-      POSTGRES_DB: ${DB_NAME:-evcharging}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - evcharge-network
-
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
-    container_name: evcharge-redis
-    command: redis-server --appendonly yes
-    volumes:
-      - redis_data:/data
-    ports:
-      - "6379:6379"
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - evcharge-network
-
-  # Backend API
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: evcharge-backend
-    environment:
-      NODE_ENV: production
-      PORT: 3000
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_NAME: ${DB_NAME:-evcharging}
-      DB_USER: ${DB_USER:-postgres}
-      DB_PASSWORD: ${DB_PASSWORD:-postgres123}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-your_access_secret_change_in_production}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-your_refresh_secret_change_in_production}
-      OCPP_PORT: 9000
-      RAZORPAY_KEY_ID: ${RAZORPAY_KEY_ID}
-      RAZORPAY_KEY_SECRET: ${RAZORPAY_KEY_SECRET}
-      RAZORPAY_WEBHOOK_SECRET: ${RAZORPAY_WEBHOOK_SECRET}
-    ports:
-      - "3000:3000"
-      - "9000:9000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    networks:
-      - evcharge-network
-
-  # Frontend
+  # Frontend (admin panel)
   frontend:
     build:
       context: ./frontend
@@ -85,8 +14,6 @@ services:
     container_name: evcharge-frontend
     ports:
       - "3001:80"
-    depends_on:
-      - backend
     networks:
       - evcharge-network
 
@@ -94,21 +21,21 @@ services:
   nginx:
     image: nginx:alpine
     container_name: evcharge-nginx
+    environment:
+      # host:port of the shared DJT-App API server
+      API_UPSTREAM: ${API_UPSTREAM:-3.110.84.196:5000}
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf.template:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
+    # Render ${API_UPSTREAM} into the config via envsubst, then run nginx.
+    command: /bin/sh -c "envsubst '$$API_UPSTREAM' < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
     depends_on:
-      - backend
       - frontend
     networks:
       - evcharge-network
-
-volumes:
-  postgres_data:
-  redis_data:
 
 networks:
   evcharge-network:
