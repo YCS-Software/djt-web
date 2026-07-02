@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Box, IconButton, Stack, Snackbar, Alert, Tooltip } from '@mui/material';
-import { EditOutlined, DeleteOutline } from '@mui/icons-material';
+import { Box, IconButton, Stack, Snackbar, Alert, Tooltip, Button } from '@mui/material';
+import { EditOutlined, DeleteOutline, RefreshOutlined } from '@mui/icons-material';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import PageHeader from './PageHeader';
 import DataTable from './DataTable';
@@ -31,6 +31,8 @@ export interface ResourceListPageProps {
   autoRefreshMs?: number;
   /** Optional content rendered above the table (filters, KPIs). */
   toolbar?: React.ReactNode;
+  /** Row click handler (e.g. navigate to a detail page). */
+  onRowClick?: (params: any) => void;
 }
 
 const guessRows = (data: any): any[] => {
@@ -59,9 +61,11 @@ const ResourceListPage: React.FC<ResourceListPageProps> = ({
   rowActions,
   autoRefreshMs,
   toolbar,
+  onRowClick,
 }) => {
   const [rows, setRows] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editRow, setEditRow] = useState<any | null>(null);
@@ -73,12 +77,19 @@ const ResourceListPage: React.FC<ResourceListPageProps> = ({
 
   const reload = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const res = await fetcher();
       const data = res?.data ?? res;
       setRows((parseRows ? parseRows(data) : guessRows(data)).map((r, i) => ({ id: r.id ?? i, ...r })));
-    } catch {
+    } catch (e: any) {
+      // Surface the failure instead of silently rendering an empty table — an
+      // empty grid must mean "no data", not "the request failed".
       setRows([]);
+      setLoadError(
+        e?.response?.data?.error ||
+          (e?.response?.status ? `Failed to load (HTTP ${e.response.status})` : 'Failed to load data')
+      );
     } finally {
       setLoading(false);
     }
@@ -145,7 +156,8 @@ const ResourceListPage: React.FC<ResourceListPageProps> = ({
               <Tooltip title="Edit">
                 <IconButton
                   size="small"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setEditRow(params.row);
                     setFormOpen(true);
                   }}
@@ -157,7 +169,14 @@ const ResourceListPage: React.FC<ResourceListPageProps> = ({
             )}
             {deleteFn && (
               <Tooltip title="Delete">
-                <IconButton size="small" onClick={() => setDeleteRow(params.row)} sx={{ color: '#c62828' }}>
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteRow(params.row);
+                  }}
+                  sx={{ color: '#c62828' }}
+                >
                   <DeleteOutline fontSize="small" />
                 </IconButton>
               </Tooltip>
@@ -189,7 +208,34 @@ const ResourceListPage: React.FC<ResourceListPageProps> = ({
 
       {toolbar}
 
-      <DataTable rows={rows} columns={cols} loading={loading} getRowId={getRowId || ((r) => r.id)} autoHeight />
+      {loadError && (
+        <Alert
+          severity="error"
+          sx={{ mb: 2, borderRadius: 2 }}
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              startIcon={<RefreshOutlined fontSize="small" />}
+              onClick={reload}
+              disabled={loading}
+            >
+              Retry
+            </Button>
+          }
+        >
+          {loadError}
+        </Alert>
+      )}
+
+      <DataTable
+        rows={rows}
+        columns={cols}
+        loading={loading}
+        getRowId={getRowId || ((r) => r.id)}
+        onRowClick={onRowClick}
+        autoHeight
+      />
 
       {formFields && (
         <FormDialog

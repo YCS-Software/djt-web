@@ -1,14 +1,27 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
-import PageHeader from '../../components/common/PageHeader';
+import DetailView from '../../components/common/DetailView';
+import { partnersApi } from '../../services/api';
 
-const PartnerDetail: React.FC = () => {
-  return (
-    <Box>
-      <PageHeader title="Partner Detail" backButton />
-      <Typography>Partner detail component</Typography>
-    </Box>
-  );
-};
+const PartnerDetail: React.FC = () => (
+  <DetailView
+    title="Partner Detail"
+    subtitle="Partner organization profile and footprint"
+    fetcher={partnersApi.getById}
+    sections={[
+      {
+        heading: 'Organization',
+        fields: [
+          { key: 'name', label: 'Name' },
+          { key: 'email', label: 'Email' },
+          { key: 'phone', label: 'Phone' },
+          { key: 'role', label: 'Role' },
+          { key: 'stations', label: 'Charging Stations' },
+          { key: 'status', label: 'Status', status: true },
+          { key: 'createdAt', label: 'Created At' },
+        ],
+      },
+    ]}
+  />
+);
 
 export default PartnerDetail;

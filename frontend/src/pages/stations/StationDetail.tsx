@@ -1,14 +1,38 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
-import PageHeader from '../../components/common/PageHeader';
+import DetailView from '../../components/common/DetailView';
+import { stationsApi } from '../../services/api';
 
-const StationDetail: React.FC = () => {
-  return (
-    <Box>
-      <PageHeader title="Station Detail" backButton />
-      <Typography>Station detail with connectors and live data</Typography>
-    </Box>
-  );
-};
+const StationDetail: React.FC = () => (
+  <DetailView
+    title="Station Detail"
+    subtitle="Charge point hardware and OCPP status"
+    fetcher={stationsApi.getById}
+    sections={[
+      {
+        heading: 'Charge Point',
+        fields: [
+          { key: 'name', label: 'Name' },
+          { key: 'serial', label: 'Serial Number' },
+          { key: 'ocppId', label: 'OCPP ID' },
+          { key: 'station', label: 'Location' },
+          { key: 'status', label: 'Status', status: true },
+          { key: 'lastHeartbeat', label: 'Last Heartbeat' },
+        ],
+      },
+      {
+        heading: 'Specifications',
+        fields: [
+          { key: 'type', label: 'Type' },
+          {
+            key: 'power',
+            label: 'Power',
+            format: (v) => (v == null || v === '' ? '—' : `${v} kW`),
+          },
+          { key: 'connectors', label: 'Connectors' },
+        ],
+      },
+    ]}
+  />
+);
 
 export default StationDetail;

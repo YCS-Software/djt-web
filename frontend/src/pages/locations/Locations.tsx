@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { Box, IconButton, Stack, Snackbar, Alert, Tooltip } from '@mui/material';
 import { EditOutlined, DeleteOutline } from '@mui/icons-material';
 import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
@@ -45,6 +46,7 @@ const fields: FieldDef[] = [
 
 const Locations: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const { rows, loading, saving } = useSelector((s: RootState) => (s as any).locations);
 
   const [formOpen, setFormOpen] = useState(false);
@@ -114,12 +116,26 @@ const Locations: React.FC = () => {
         renderCell: (params: GridRenderCellParams) => (
           <Stack direction="row" spacing={0.5}>
             <Tooltip title="Edit">
-              <IconButton size="small" onClick={() => openEdit(params.row)} sx={{ color: '#14532d' }}>
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openEdit(params.row);
+                }}
+                sx={{ color: '#14532d' }}
+              >
                 <EditOutlined fontSize="small" />
               </IconButton>
             </Tooltip>
             <Tooltip title="Delete">
-              <IconButton size="small" onClick={() => setDeleteRow(params.row)} sx={{ color: '#c62828' }}>
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteRow(params.row);
+                }}
+                sx={{ color: '#c62828' }}
+              >
                 <DeleteOutline fontSize="small" />
               </IconButton>
             </Tooltip>
@@ -137,7 +153,14 @@ const Locations: React.FC = () => {
         subtitle="Charging site locations across the network"
         action={{ label: 'Add Location', onClick: openCreate }}
       />
-      <DataTable rows={rows} columns={columns} loading={loading} getRowId={(r) => r.id} autoHeight />
+      <DataTable
+        rows={rows}
+        columns={columns}
+        loading={loading}
+        getRowId={(r) => r.id}
+        onRowClick={(params) => navigate(`/locations/${params.row.id}`)}
+        autoHeight
+      />
 
       <FormDialog
         open={formOpen}

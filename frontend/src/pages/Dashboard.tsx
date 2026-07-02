@@ -15,6 +15,11 @@ import {
   FormControl,
   InputLabel,
   Stack,
+  LinearProgress,
+  Avatar,
+  Divider,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
 import {
   BusinessCenterOutlined,
@@ -29,11 +34,30 @@ import {
   FilterAltOutlined,
   HomeOutlined,
   NavigateNext,
+  RefreshOutlined,
+  PlayCircleOutlineOutlined,
+  EmojiEventsOutlined,
+  CurrencyRupeeOutlined,
 } from '@mui/icons-material';
 import Chart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { AppDispatch, RootState } from '../store';
-import { fetchAnalytics } from '../features/dashboard/dashboardSlice';
+import {
+  fetchAnalytics,
+  fetchOverview,
+  fetchTopStations,
+  fetchRecentActivity,
+  fetchLiveSessions,
+} from '../features/dashboard/dashboardSlice';
+import { partnersApi } from '../services/api';
+
+// Time-range option -> human label (also used for the Performance section title).
+const RANGE_LABELS: Record<string, string> = {
+  all: 'All Time',
+  today: 'Today',
+  '7d': 'Last 7 Days',
+  '30d': 'Last 30 Days',
+};
 
 // ── Palette (DJT green) ─────────────────────────────────────────────────────
 const GREEN = '#14532d';
@@ -161,6 +185,56 @@ const NoData: React.FC<{ height?: number }> = ({ height = 240 }) => (
   </Box>
 );
 
+// ── "Today" live tile ─────────────────────────────────────────────────────────
+interface TodayTileProps {
+  icon: React.ReactNode;
+  label: string;
+  value: string | number;
+  tint: string;
+}
+const TodayTile: React.FC<TodayTileProps> = ({ icon, label, value, tint }) => (
+  <Card elevation={0} sx={cardSx}>
+    <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 1.5, py: 2 }}>
+      <Box
+        sx={{
+          width: 40,
+          height: 40,
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: tint,
+          bgcolor: `${tint}18`,
+          flexShrink: 0,
+        }}
+      >
+        {icon}
+      </Box>
+      <Box sx={{ minWidth: 0 }}>
+        <Typography sx={{ fontSize: 11.5, color: LABEL, fontWeight: 500 }} noWrap>
+          {label}
+        </Typography>
+        <Typography sx={{ fontSize: 20, fontWeight: 800, color: VALUE, lineHeight: 1.2 }}>
+          {value}
+        </Typography>
+      </Box>
+    </CardContent>
+  </Card>
+);
+
+// Relative-time formatter for the activity feed ("5m ago").
+const timeAgo = (iso: string): string => {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return '';
+  const diff = Math.max(0, Date.now() - then);
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+};
+
 // ── Apex option builders ────────────────────────────────────────────────────
 const barOptions = (categories: string[], color: string, yFmt: (v: number) => string): ApexOptions => ({
   chart: { type: 'bar', toolbar: { show: false }, fontFamily: 'inherit' },
@@ -194,16 +268,53 @@ const donutOptions = (labels: string[], colors: string[]): ApexOptions => ({
   tooltip: { theme: 'light', y: { formatter: (v: number) => `${v}` } },
 });
 
+// Auto-refresh cadence for the live widgets (Today strip, activity feed).
+const REFRESH_MS = 60_000;
+
 const Dashboard: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { analytics, loading } = useSelector((state: RootState) => state.dashboard);
+  const { analytics, overview, topStations, recentActivity, loading } = useSelector(
+    (state: RootState) => state.dashboard
+  );
   const [timeRange, setTimeRange] = useState('all');
   const [partnerOrg, setPartnerOrg] = useState('all');
+  const [partners, setPartners] = useState<{ id: string | number; name: string }[]>([]);
+  const [refreshedAt, setRefreshedAt] = useState<Date | null>(null);
+
+  // Populate the Partner Organization filter from the real partners list.
+  useEffect(() => {
+    let alive = true;
+    partnersApi
+      .list()
+      .then((r) => {
+        const rows = r?.data?.rows || r?.data || [];
+        if (alive) setPartners(Array.isArray(rows) ? rows : []);
+      })
+      .catch(() => {
+        if (alive) setPartners([]);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const loadAll = React.useCallback(() => {
+    // Both filters are honored server-side by /web/dashboard/analytics.
+    const params: { range: string; partnerId?: string } = { range: timeRange };
+    if (partnerOrg !== 'all') params.partnerId = partnerOrg;
+    dispatch(fetchAnalytics(params));
+    dispatch(fetchOverview(params));
+    dispatch(fetchTopStations({ limit: 5 }));
+    dispatch(fetchRecentActivity({ limit: 8 }));
+    dispatch(fetchLiveSessions());
+    setRefreshedAt(new Date());
+  }, [dispatch, timeRange, partnerOrg]);
 
   useEffect(() => {
-    const range = timeRange === 'all' ? undefined : timeRange;
-    dispatch(fetchAnalytics(range ? { range } : undefined));
-  }, [dispatch, timeRange]);
+    loadAll();
+    const id = setInterval(loadAll, REFRESH_MS);
+    return () => clearInterval(id);
+  }, [loadAll]);
 
   const a = analytics;
   const s = a?.summary;
@@ -290,8 +401,29 @@ const Dashboard: React.FC = () => {
             <InputLabel>Select Partner Organization</InputLabel>
             <Select value={partnerOrg} label="Select Partner Organization" onChange={(e) => setPartnerOrg(e.target.value)}>
               <MenuItem value="all">All Organizations</MenuItem>
+              {partners.map((p) => (
+                <MenuItem key={p.id} value={String(p.id)}>
+                  {p.name}
+                </MenuItem>
+              ))}
             </Select>
           </FormControl>
+          <Tooltip
+            title={refreshedAt ? `Updated ${refreshedAt.toLocaleTimeString()} · auto-refresh 60s` : 'Refresh'}
+          >
+            <IconButton
+              onClick={loadAll}
+              sx={{
+                border: `1px solid ${CARD_BORDER}`,
+                borderRadius: 2,
+                color: GREEN,
+                bgcolor: '#fff',
+                '&:hover': { bgcolor: '#ecfdf5' },
+              }}
+            >
+              <RefreshOutlined />
+            </IconButton>
+          </Tooltip>
         </Stack>
       </Box>
 
@@ -305,8 +437,45 @@ const Dashboard: React.FC = () => {
         ))}
       </Grid>
 
+      {/* Today — live snapshot (not shown on the reference analytics page) */}
+      <SectionLabel>Today · Live</SectionLabel>
+      <Grid container spacing={2.5} mb={3}>
+        <Grid item xs={12} sm={6} md={3}>
+          <TodayTile
+            icon={<PlayCircleOutlineOutlined />}
+            label="Active Sessions"
+            value={overview?.activeSessions ?? 0}
+            tint="#2e7d32"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <TodayTile
+            icon={<BoltOutlined />}
+            label="Today's Sessions"
+            value={overview?.today?.sessions ?? 0}
+            tint="#1565c0"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <TodayTile
+            icon={<FlashOnOutlined />}
+            label="Today's Energy (kWh)"
+            value={overview?.today?.energy ?? '0.00'}
+            tint="#ef6c00"
+          />
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <TodayTile
+            icon={<CurrencyRupeeOutlined />}
+            label="Today's Revenue"
+            value={`₹ ${overview?.today?.revenue ?? '0.00'}`}
+            tint="#6a1b9a"
+          />
+        </Grid>
+      </Grid>
+
       {/* Performance */}
-      <SectionLabel>Performance · Last 7 Days</SectionLabel>
+      <SectionLabel>Performance · {RANGE_LABELS[timeRange] || 'Last 7 Days'}</SectionLabel>
       <Grid container spacing={2.5} mb={2.5}>
         <Grid item xs={12} md={4}>
           <ChartCard title="AVG UPTIME" average={`AVERAGE : ${(a?.avgUptime.average ?? 0).toFixed(2)}%`} showFilter>
@@ -384,6 +553,112 @@ const Dashboard: React.FC = () => {
                 type="donut"
                 height={340}
               />
+            )}
+          </ChartCard>
+        </Grid>
+      </Grid>
+
+      {/* Network activity — top stations + recent activity (new insights) */}
+      <SectionLabel>Network Activity</SectionLabel>
+      <Grid container spacing={2.5} mb={2.5}>
+        <Grid item xs={12} md={6}>
+          <ChartCard title="TOP PERFORMING STATIONS">
+            {!topStations || topStations.length === 0 ? (
+              <NoData height={280} />
+            ) : (
+              <Box mt={1}>
+                {(() => {
+                  const maxRev = Math.max(...topStations.map((t: any) => Number(t.totalRevenue) || 0), 1);
+                  return topStations.map((t: any, i: number) => {
+                    const rev = Number(t.totalRevenue) || 0;
+                    return (
+                      <Box key={t.stationId ?? i} sx={{ py: 1.25 }}>
+                        <Box display="flex" alignItems="center" gap={1.5} mb={0.5}>
+                          <Avatar
+                            sx={{
+                              width: 28,
+                              height: 28,
+                              fontSize: 13,
+                              fontWeight: 700,
+                              bgcolor: i === 0 ? '#f6c453' : i === 1 ? '#c9d1d9' : i === 2 ? '#e0a878' : '#eef0f3',
+                              color: i < 3 ? '#3a2f00' : '#8a94a6',
+                            }}
+                          >
+                            {i < 3 ? <EmojiEventsOutlined sx={{ fontSize: 16 }} /> : i + 1}
+                          </Avatar>
+                          <Typography sx={{ fontSize: 13.5, fontWeight: 600, color: VALUE, flex: 1 }} noWrap>
+                            {t.station?.name || `Station ${t.stationId}`}
+                          </Typography>
+                          <Typography sx={{ fontSize: 13, fontWeight: 700, color: GREEN }}>
+                            ₹ {rev.toFixed(2)}
+                          </Typography>
+                        </Box>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <LinearProgress
+                            variant="determinate"
+                            value={(rev / maxRev) * 100}
+                            sx={{
+                              flex: 1,
+                              height: 6,
+                              borderRadius: 3,
+                              bgcolor: '#eef0f3',
+                              '& .MuiLinearProgress-bar': { bgcolor: GREEN_BAR, borderRadius: 3 },
+                            }}
+                          />
+                          <Typography sx={{ fontSize: 11.5, color: LABEL, minWidth: 64, textAlign: 'right' }}>
+                            {t.sessionCount ?? 0} sessions
+                          </Typography>
+                        </Box>
+                      </Box>
+                    );
+                  });
+                })()}
+              </Box>
+            )}
+          </ChartCard>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <ChartCard title="RECENT ACTIVITY">
+            {!recentActivity || recentActivity.length === 0 ? (
+              <NoData height={280} />
+            ) : (
+              <Box mt={1}>
+                {recentActivity.map((r: any, i: number) => (
+                  <Box key={r.id ?? i}>
+                    <Box display="flex" alignItems="center" gap={1.5} sx={{ py: 1 }}>
+                      <Avatar sx={{ width: 32, height: 32, bgcolor: '#ecfdf5', color: GREEN }}>
+                        <EvStationOutlined sx={{ fontSize: 18 }} />
+                      </Avatar>
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography sx={{ fontSize: 13, fontWeight: 600, color: VALUE }} noWrap>
+                          {r.user?.name || 'Driver'} · {r.station?.name || 'Station'}
+                        </Typography>
+                        <Typography sx={{ fontSize: 11.5, color: LABEL }}>
+                          {(r.type || 'session')} · {timeAgo(r.timestamp)}
+                        </Typography>
+                      </Box>
+                      {r.amount != null && (
+                        <Typography sx={{ fontSize: 13, fontWeight: 700, color: GREEN }}>
+                          ₹ {Number(r.amount).toFixed(2)}
+                        </Typography>
+                      )}
+                      <Chip
+                        label={r.status || '—'}
+                        size="small"
+                        sx={{
+                          height: 20,
+                          fontSize: 10.5,
+                          fontWeight: 600,
+                          textTransform: 'capitalize',
+                          bgcolor: /complete|finish|success/i.test(r.status || '') ? '#ecfdf5' : '#fff4e5',
+                          color: /complete|finish|success/i.test(r.status || '') ? GREEN : '#b7791f',
+                        }}
+                      />
+                    </Box>
+                    {i < recentActivity.length - 1 && <Divider sx={{ borderColor: CARD_BORDER }} />}
+                  </Box>
+                ))}
+              </Box>
             )}
           </ChartCard>
         </Grid>

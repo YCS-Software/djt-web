@@ -1,14 +1,30 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
-import PageHeader from '../../components/common/PageHeader';
+import DetailView from '../../components/common/DetailView';
+import { driversApi } from '../../services/api';
 
-const DriverDetail: React.FC = () => {
-  return (
-    <Box>
-      <PageHeader title="Driver Detail" backButton />
-      <Typography>Driver profile, wallet, vehicles, sessions</Typography>
-    </Box>
-  );
-};
+const DriverDetail: React.FC = () => (
+  <DetailView
+    title="Driver Detail"
+    subtitle="EV driver profile and wallet"
+    fetcher={driversApi.getById}
+    sections={[
+      {
+        heading: 'Profile',
+        fields: [
+          { key: 'name', label: 'Name' },
+          { key: 'email', label: 'Email' },
+          { key: 'phone', label: 'Phone' },
+          {
+            key: 'walletBalance',
+            label: 'Wallet Balance',
+            format: (v) => (v == null || v === '' ? '—' : `₹ ${v}`),
+          },
+          { key: 'status', label: 'Status', status: true },
+          { key: 'createdAt', label: 'Created At' },
+        ],
+      },
+    ]}
+  />
+);
 
 export default DriverDetail;

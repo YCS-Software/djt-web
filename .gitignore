@@ -39,6 +39,16 @@ Thumbs.db
 coverage/
 .nyc_output/
 
+# Playwright
+test-results/
+playwright-report/
+playwright-report-live/
+blob-report/
+playwright/.cache/
+# Generated live-comparison diagnostics (regenerated per run)
+frontend/live-results.json
+frontend/live-diagnostics-*.json
+
 # Docker
 docker-compose.override.yml
 

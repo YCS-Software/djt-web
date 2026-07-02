@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { Box } from '@mui/material';
 import { GridColDef } from '@mui/x-data-grid';
 import { AppDispatch, RootState } from '../../store';
@@ -29,6 +30,7 @@ const columns: GridColDef[] = [
 
 const Drivers: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const { rows, loading } = useSelector((s: RootState) => (s as any).drivers);
 
   useEffect(() => {
@@ -46,6 +48,7 @@ const Drivers: React.FC = () => {
         columns={columns}
         loading={loading}
         getRowId={(r) => r.id}
+        onRowClick={(params) => navigate(`/drivers/${params.row.id}`)}
         autoHeight
       />
     </Box>
