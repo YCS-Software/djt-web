@@ -103,7 +103,7 @@ const Locations: React.FC = () => {
         field: 'pricePerKwh',
         headerName: 'Price/kWh',
         width: 110,
-        valueFormatter: (value) => formatNumber(value),
+        valueFormatter: (params: any) => formatNumber(params?.value),
       },
       { field: 'rating', headerName: 'Rating', width: 90, type: 'number' },
       { field: 'status', headerName: 'Status', width: 120 },
