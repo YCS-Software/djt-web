@@ -4,6 +4,7 @@ import {
   GridColDef,
   GridRowsProp,
   GridToolbar,
+  GridPagination,
   GridPaginationModel,
   GridRenderCellParams,
   GridOverlay,
@@ -36,6 +37,16 @@ interface DataTableProps {
   toolbar?: boolean;
   autoHeight?: boolean;
   getRowId?: (row: any) => string;
+  /** Prepend a continuous "S.No" serial column (default true). */
+  serialNumber?: boolean;
+  /** Page-size choices (default [5, 10, 20, 50, 100]). */
+  pageSizeOptions?: number[];
+  /** Content rendered inside the grid footer, above the pagination row. */
+  footerContent?: React.ReactNode;
+  /** Hide the pagination controls (e.g. when there is only a single page). */
+  hidePagination?: boolean;
+  /** Row density (default 'standard'). */
+  density?: 'compact' | 'standard' | 'comfortable';
 }
 
 // Status -> color bucket, used to render status cells as colored chips.
@@ -77,6 +88,11 @@ const DataTable: React.FC<DataTableProps> = ({
   toolbar = true,
   autoHeight = false,
   getRowId,
+  serialNumber = true,
+  pageSizeOptions = [5, 10, 20, 50, 100],
+  footerContent,
+  hidePagination = false,
+  density = 'standard',
 }) => {
   const handlePaginationChange = (model: GridPaginationModel) => {
     if (onPageChange) onPageChange(model.page);
@@ -90,6 +106,37 @@ const DataTable: React.FC<DataTableProps> = ({
       ? { ...col, renderCell: (params: GridRenderCellParams) => <StatusChip value={params.value} /> }
       : col
   );
+
+  // Continuous "S.No" serial column: 1-based, follows current sort order, and
+  // spans pages (adds the page offset in server-pagination mode). Blank for any
+  // appended summary/total row (id starting with "__").
+  const serialColumn: GridColDef = {
+    field: '__sno',
+    headerName: 'S.No',
+    width: 72,
+    sortable: false,
+    filterable: false,
+    disableColumnMenu: true,
+    align: 'center',
+    headerAlign: 'center',
+    renderCell: (params: GridRenderCellParams) => {
+      if (String(params.id).startsWith('__')) return '';
+      const idx = params.api.getSortedRowIds().indexOf(params.id);
+      const base = rowCount ? page * pageSize : 0;
+      return idx >= 0 ? base + idx + 1 : '';
+    },
+  };
+  const finalColumns = serialNumber ? [serialColumn, ...enhancedColumns] : enhancedColumns;
+
+  // Custom grid footer: optional summary content, with pagination rendered
+  // BELOW it (hidden when there is only one page / hidePagination is set).
+  const CustomFooter = () => (
+    <Box>
+      {footerContent}
+      {!hidePagination && <GridPagination />}
+    </Box>
+  );
+  const footerSlot = footerContent || hidePagination ? { footer: CustomFooter } : {};
 
   return (
     <Paper
@@ -105,9 +152,10 @@ const DataTable: React.FC<DataTableProps> = ({
       <Box sx={{ height: autoHeight ? 'auto' : 600, width: '100%' }}>
         <DataGrid
           rows={rows}
-          columns={enhancedColumns}
+          columns={finalColumns}
           loading={loading}
-          pageSizeOptions={[10, 20, 50, 100]}
+          density={density}
+          pageSizeOptions={pageSizeOptions}
           initialState={{ pagination: { paginationModel: { page, pageSize } } }}
           paginationModel={rowCount ? { page, pageSize } : undefined}
           onPaginationModelChange={handlePaginationChange}
@@ -119,7 +167,7 @@ const DataTable: React.FC<DataTableProps> = ({
           }}
           onRowClick={onRowClick}
           getRowId={getRowId || ((row) => row.id)}
-          slots={{ ...(toolbar ? { toolbar: GridToolbar } : {}), noRowsOverlay: NoRowsOverlay }}
+          slots={{ ...(toolbar ? { toolbar: GridToolbar } : {}), noRowsOverlay: NoRowsOverlay, ...footerSlot }}
           slotProps={{
             toolbar: { showQuickFilter: true, quickFilterProps: { debounceMs: 400 } },
           }}

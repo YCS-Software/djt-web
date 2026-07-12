@@ -53,6 +53,7 @@ import {
   LockOutlined,
   LinkOutlined,
   PaidOutlined,
+  AccountBalanceWalletOutlined,
   CircleOutlined,
 } from '@mui/icons-material';
 import { RootState } from '../../store';
@@ -66,6 +67,7 @@ interface SidebarProps {
 // Path -> icon registry. The API returns menu items by path; we render the icon.
 const ICONS: Record<string, React.ReactElement> = {
   '/dashboard': <DashboardOutlined />,
+  '/finance': <AccountBalanceWalletOutlined />,
   '/live-sessions': <BatteryChargingFullOutlined />,
   '/business': <BusinessOutlined />,
   '/partners': <BusinessCenterOutlined />,
@@ -110,7 +112,13 @@ const ICONS: Record<string, React.ReactElement> = {
 
 // Fallback admin menu (used before the API responds / if it fails).
 const DEFAULT_SECTIONS: MenuSection[] = [
-  { heading: '', items: [{ title: 'Dashboard', path: '/dashboard' }] },
+  {
+    heading: '',
+    items: [
+      { title: 'Dashboard', path: '/dashboard' },
+      { title: 'Finance', path: '/finance' },
+    ],
+  },
   {
     heading: 'MANAGE',
     items: [

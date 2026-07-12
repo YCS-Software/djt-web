@@ -11,6 +11,7 @@ import AuthLayout from './components/layout/AuthLayout';
 // Lazy load pages
 const Login = React.lazy(() => import('./pages/auth/Login'));
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
+const FinanceDashboard = React.lazy(() => import('./pages/finance/FinanceDashboard'));
 const Users = React.lazy(() => import('./pages/users/Users'));
 const UserDetail = React.lazy(() => import('./pages/users/UserDetail'));
 const Partners = React.lazy(() => import('./pages/partners/Partners'));
@@ -111,6 +112,7 @@ const App: React.FC = () => {
         >
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/finance" element={<FinanceDashboard />} />
           <Route path="/live-sessions" element={<LiveSessions />} />
 
           {/* Manage */}

@@ -7,6 +7,7 @@ import { AppDispatch, RootState } from '../../store';
 import { fetchDrivers } from '../../features/drivers/driversSlice';
 import PageHeader from '../../components/common/PageHeader';
 import DataTable from '../../components/common/DataTable';
+import { formatDateTime } from '../../utils/date';
 
 const formatMoney = (value: any) => {
   const n = Number(value);
@@ -25,7 +26,7 @@ const columns: GridColDef[] = [
     valueFormatter: (value) => formatMoney(value),
   },
   { field: 'status', headerName: 'Status', flex: 1, minWidth: 120 },
-  { field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 120 },
+  { field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 120, valueFormatter: (p: any) => formatDateTime(p.value) },
 ];
 
 const Drivers: React.FC = () => {

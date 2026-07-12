@@ -3,6 +3,7 @@ import { GridColDef } from '@mui/x-data-grid';
 import ResourceListPage from '../../components/common/ResourceListPage';
 import { FieldDef } from '../../components/common/FormDialog';
 import { courtesySessionsApi } from '../../services/api';
+import { formatDateTime } from '../../utils/date';
 
 const columns: GridColDef[] = [
   { field: 'driverName', headerName: 'Driver', flex: 1, minWidth: 150 },
@@ -10,7 +11,7 @@ const columns: GridColDef[] = [
   { field: 'durationMinutes', headerName: 'Duration (min)', width: 140 },
   { field: 'reason', headerName: 'Reason', flex: 1, minWidth: 150 },
   { field: 'status', headerName: 'Status', width: 120 },
-  { field: 'createdAt', headerName: 'Granted At', flex: 1, minWidth: 120 },
+  { field: 'createdAt', headerName: 'Granted At', flex: 1, minWidth: 120, valueFormatter: (p: any) => formatDateTime(p.value) },
 ];
 
 const fields: FieldDef[] = [

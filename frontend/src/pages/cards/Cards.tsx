@@ -8,13 +8,14 @@ import { cardsApi } from '../../services/api';
 import PageHeader from '../../components/common/PageHeader';
 import DataTable from '../../components/common/DataTable';
 import FormDialog, { FieldDef } from '../../components/common/FormDialog';
+import { formatDateTime, formatDate } from '../../utils/date';
 
 const columns: GridColDef[] = [
   { field: 'user', headerName: 'User', flex: 1, minWidth: 120 },
   { field: 'type', headerName: 'Type', flex: 1, minWidth: 120 },
   { field: 'status', headerName: 'Status', flex: 1, minWidth: 120 },
-  { field: 'expiresAt', headerName: 'Expires At', flex: 1, minWidth: 120 },
-  { field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 120 },
+  { field: 'expiresAt', headerName: 'Expires At', flex: 1, minWidth: 120, valueFormatter: (p: any) => formatDate(p.value) },
+  { field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 120, valueFormatter: (p: any) => formatDateTime(p.value) },
 ];
 
 const fields: FieldDef[] = [

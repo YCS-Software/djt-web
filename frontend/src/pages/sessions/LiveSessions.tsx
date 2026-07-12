@@ -4,6 +4,7 @@ import { StopCircleOutlined } from '@mui/icons-material';
 import { GridColDef } from '@mui/x-data-grid';
 import ResourceListPage from '../../components/common/ResourceListPage';
 import { sessionsApi } from '../../services/api';
+import { formatDateTime } from '../../utils/date';
 
 const num = (p: any) => {
   const n = Number(p.value);
@@ -16,7 +17,7 @@ const columns: GridColDef[] = [
   { field: 'driverName', headerName: 'Driver', flex: 1, minWidth: 140 },
   { field: 'energy', headerName: 'Energy (kWh)', width: 130, valueFormatter: num },
   { field: 'progress', headerName: 'Progress %', width: 120 },
-  { field: 'startTime', headerName: 'Started', flex: 1, minWidth: 150 },
+  { field: 'startTime', headerName: 'Started', flex: 1, minWidth: 150, valueFormatter: (p: any) => formatDateTime(p.value) },
   { field: 'status', headerName: 'Status', width: 120 },
 ];
 

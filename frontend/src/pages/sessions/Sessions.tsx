@@ -4,17 +4,14 @@ import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import ResourceListPage from '../../components/common/ResourceListPage';
 import StatusChip from '../../components/common/StatusChip';
 import { sessionsApi } from '../../services/api';
+import { formatDateTime } from '../../utils/date';
 
 const num = (digits: number) => (p: any) => {
   const n = Number(p.value);
   return isNaN(n) ? (p.value ?? '') : n.toFixed(digits);
 };
 
-const dateTime = (p: any) => {
-  if (!p.value) return '';
-  const d = new Date(p.value);
-  return isNaN(d.getTime()) ? String(p.value) : d.toLocaleString();
-};
+const dateTime = (p: any) => formatDateTime(p.value);
 
 const columns: GridColDef[] = [
   { field: 'sessionCode', headerName: 'Session', flex: 1, minWidth: 180 },

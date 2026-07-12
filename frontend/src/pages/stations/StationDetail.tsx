@@ -1,6 +1,7 @@
 import React from 'react';
 import DetailView from '../../components/common/DetailView';
 import { stationsApi } from '../../services/api';
+import { formatDateTime } from '../../utils/date';
 
 const StationDetail: React.FC = () => (
   <DetailView
@@ -16,7 +17,7 @@ const StationDetail: React.FC = () => (
           { key: 'ocppId', label: 'OCPP ID' },
           { key: 'station', label: 'Location' },
           { key: 'status', label: 'Status', status: true },
-          { key: 'lastHeartbeat', label: 'Last Heartbeat' },
+          { key: 'lastHeartbeat', label: 'Last Heartbeat', format: formatDateTime },
         ],
       },
       {

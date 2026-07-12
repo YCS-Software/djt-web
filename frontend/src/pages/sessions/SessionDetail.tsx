@@ -1,6 +1,7 @@
 import React from 'react';
 import DetailView from '../../components/common/DetailView';
 import { sessionsApi } from '../../services/api';
+import { formatDateTime } from '../../utils/date';
 
 const SessionDetail: React.FC = () => (
   <DetailView
@@ -52,9 +53,9 @@ const SessionDetail: React.FC = () => (
       {
         heading: 'Timing',
         fields: [
-          { key: 'startTime', label: 'Start Time' },
-          { key: 'endTime', label: 'End Time' },
-          { key: 'createdAt', label: 'Created At' },
+          { key: 'startTime', label: 'Start Time', format: formatDateTime },
+          { key: 'endTime', label: 'End Time', format: formatDateTime },
+          { key: 'createdAt', label: 'Created At', format: formatDateTime },
         ],
       },
     ]}

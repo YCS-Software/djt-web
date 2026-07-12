@@ -6,6 +6,7 @@ import { AppDispatch, RootState } from '../../store';
 import { fetchTransactions } from '../../features/transactions/transactionsSlice';
 import PageHeader from '../../components/common/PageHeader';
 import DataTable from '../../components/common/DataTable';
+import { formatDateTime } from '../../utils/date';
 
 const formatNumber = (value: any) => {
   if (value === null || value === undefined || value === '') return '';
@@ -20,7 +21,7 @@ const columns: GridColDef[] = [
   { field: 'amount', headerName: 'Amount', flex: 1, minWidth: 120, valueFormatter: (params) => formatNumber(params.value) },
   { field: 'balanceAfter', headerName: 'Balance After', flex: 1, minWidth: 120, valueFormatter: (params) => formatNumber(params.value) },
   { field: 'status', headerName: 'Status', flex: 1, minWidth: 120 },
-  { field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 120 },
+  { field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 120, valueFormatter: (p: any) => formatDateTime(p.value) },
 ];
 
 const Transactions: React.FC = () => {

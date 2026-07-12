@@ -1,6 +1,7 @@
 import React from 'react';
 import DetailView from '../../components/common/DetailView';
 import { driversApi } from '../../services/api';
+import { formatDateTime } from '../../utils/date';
 
 const DriverDetail: React.FC = () => (
   <DetailView
@@ -20,7 +21,7 @@ const DriverDetail: React.FC = () => (
             format: (v) => (v == null || v === '' ? '—' : `₹ ${v}`),
           },
           { key: 'status', label: 'Status', status: true },
-          { key: 'createdAt', label: 'Created At' },
+          { key: 'createdAt', label: 'Created At', format: formatDateTime },
         ],
       },
     ]}

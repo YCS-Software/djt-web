@@ -8,6 +8,7 @@ import { couponsApi } from '../../services/api';
 import PageHeader from '../../components/common/PageHeader';
 import DataTable from '../../components/common/DataTable';
 import FormDialog, { FieldDef } from '../../components/common/FormDialog';
+import { formatDate } from '../../utils/date';
 
 const columns: GridColDef[] = [
   { field: 'code', headerName: 'Code', flex: 1, minWidth: 120 },
@@ -21,8 +22,8 @@ const columns: GridColDef[] = [
     valueFormatter: (params) =>
       params.value == null || params.value === '' ? '' : Number(params.value).toFixed(2),
   },
-  { field: 'startDate', headerName: 'Start Date', flex: 1, minWidth: 120 },
-  { field: 'endDate', headerName: 'End Date', flex: 1, minWidth: 120 },
+  { field: 'startDate', headerName: 'Start Date', flex: 1, minWidth: 120, valueFormatter: (p: any) => formatDate(p.value) },
+  { field: 'endDate', headerName: 'End Date', flex: 1, minWidth: 120, valueFormatter: (p: any) => formatDate(p.value) },
   { field: 'status', headerName: 'Status', flex: 1, minWidth: 120 },
 ];
 

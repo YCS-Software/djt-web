@@ -238,6 +238,12 @@ export const dashboardApi = {
   liveSessions: (params?: object) => api.get('/web/dashboard/live-sessions', { params }),
 };
 
+// Finance dashboard — franchises (station owners) and their revenue share.
+// `range` is one of: all | today | month | year (period the split is computed for).
+export const financeApi = {
+  franchises: (params?: { range?: string }) => api.get('/web/finance/franchises', { params }),
+};
+
 export const logsApi = {
   audit: (params?: object) => api.get('/web/audit-logs', { params }),
   auditById: (id: string) => api.get(`/web/audit-logs/${id}`),

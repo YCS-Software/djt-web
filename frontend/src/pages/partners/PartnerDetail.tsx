@@ -1,6 +1,7 @@
 import React from 'react';
 import DetailView from '../../components/common/DetailView';
 import { partnersApi } from '../../services/api';
+import { formatDateTime } from '../../utils/date';
 
 const PartnerDetail: React.FC = () => (
   <DetailView
@@ -17,7 +18,7 @@ const PartnerDetail: React.FC = () => (
           { key: 'role', label: 'Role' },
           { key: 'stations', label: 'Charging Stations' },
           { key: 'status', label: 'Status', status: true },
-          { key: 'createdAt', label: 'Created At' },
+          { key: 'createdAt', label: 'Created At', format: formatDateTime },
         ],
       },
     ]}

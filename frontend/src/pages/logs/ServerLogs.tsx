@@ -2,9 +2,10 @@ import React from 'react';
 import { GridColDef } from '@mui/x-data-grid';
 import ResourceListPage from '../../components/common/ResourceListPage';
 import { logsApi } from '../../services/api';
+import { formatDateTime } from '../../utils/date';
 
 const columns: GridColDef[] = [
-  { field: 'timestamp', headerName: 'Timestamp', flex: 1, minWidth: 170 },
+  { field: 'timestamp', headerName: 'Timestamp', flex: 1, minWidth: 170, valueFormatter: (p: any) => formatDateTime(p.value) },
   { field: 'stationId', headerName: 'Station', flex: 1, minWidth: 140 },
   { field: 'messageType', headerName: 'Message', flex: 1, minWidth: 150 },
   { field: 'direction', headerName: 'Direction', width: 120 },

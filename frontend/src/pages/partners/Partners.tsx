@@ -15,6 +15,7 @@ import PageHeader from '../../components/common/PageHeader';
 import DataTable from '../../components/common/DataTable';
 import FormDialog, { FieldDef } from '../../components/common/FormDialog';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
+import { formatDateTime } from '../../utils/date';
 
 const fields: FieldDef[] = [
   { name: 'name', label: 'Name', required: true },
@@ -94,7 +95,7 @@ const Partners: React.FC = () => {
       { field: 'phone', headerName: 'Phone', flex: 1, minWidth: 120 },
       { field: 'stations', headerName: 'Stations', width: 100 },
       { field: 'status', headerName: 'Status', width: 120 },
-      { field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 120 },
+      { field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 120, valueFormatter: (p: any) => formatDateTime(p.value) },
       {
         field: 'actions',
         headerName: 'Actions',

@@ -3,12 +3,9 @@ import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 import ResourceListPage from '../../components/common/ResourceListPage';
 import StatusChip from '../../components/common/StatusChip';
 import { tariffsApi } from '../../services/api';
+import { formatDate } from '../../utils/date';
 
-const dateOnly = (p: any) => {
-  if (!p.value) return '';
-  const d = new Date(p.value);
-  return isNaN(d.getTime()) ? String(p.value) : d.toLocaleDateString();
-};
+const dateOnly = (p: any) => formatDate(p.value);
 
 const columns: GridColDef[] = [
   { field: 'name', headerName: 'Name', flex: 1, minWidth: 200 },

@@ -3,6 +3,7 @@ import ResourceListPage from '../../components/common/ResourceListPage';
 import { FieldDef } from '../../components/common/FormDialog';
 import { businessApi } from '../../services/api';
 import { GridColDef } from '@mui/x-data-grid';
+import { formatDateTime } from '../../utils/date';
 
 const columns: GridColDef[] = [
   { field: 'name', headerName: 'Business Name', flex: 1, minWidth: 160 },
@@ -11,7 +12,7 @@ const columns: GridColDef[] = [
   { field: 'partners', headerName: 'Partners', width: 100 },
   { field: 'locations', headerName: 'Locations', width: 100 },
   { field: 'status', headerName: 'Status', width: 120 },
-  { field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 120 },
+  { field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 120, valueFormatter: (p: any) => formatDateTime(p.value) },
 ];
 
 const fields: FieldDef[] = [

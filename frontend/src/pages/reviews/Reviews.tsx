@@ -6,13 +6,14 @@ import { AppDispatch, RootState } from '../../store';
 import { fetchReviews } from '../../features/reviews/reviewsSlice';
 import PageHeader from '../../components/common/PageHeader';
 import DataTable from '../../components/common/DataTable';
+import { formatDateTime } from '../../utils/date';
 
 const columns: GridColDef[] = [
   { field: 'user', headerName: 'User', flex: 1, minWidth: 120 },
   { field: 'station', headerName: 'Station', flex: 1, minWidth: 120 },
   { field: 'rating', headerName: 'Rating', type: 'number', flex: 1, minWidth: 120 },
   { field: 'review', headerName: 'Review', flex: 1, minWidth: 120 },
-  { field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 120 },
+  { field: 'createdAt', headerName: 'Created At', flex: 1, minWidth: 120, valueFormatter: (p: any) => formatDateTime(p.value) },
 ];
 
 const Reviews: React.FC = () => {

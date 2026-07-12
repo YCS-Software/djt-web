@@ -1,6 +1,7 @@
 import React from 'react';
 import DetailView from '../../components/common/DetailView';
 import { usersApi } from '../../services/api';
+import { formatDateTime } from '../../utils/date';
 
 const UserDetail: React.FC = () => (
   <DetailView
@@ -16,7 +17,7 @@ const UserDetail: React.FC = () => (
           { key: 'phone', label: 'Phone' },
           { key: 'role', label: 'Role' },
           { key: 'status', label: 'Status', status: true },
-          { key: 'createdAt', label: 'Created At' },
+          { key: 'createdAt', label: 'Created At', format: formatDateTime },
         ],
       },
     ]}
