@@ -73,12 +73,12 @@ const cardSx = {
   height: '100%',
 } as const;
 
-// Shared style for the header filter controls: white field + white-backed label
-// so the floating label reads clearly on the cream page (no strike-through).
+// Shared style for the header filter controls. Only the input BOX is white; the
+// floating label sits in the outline's notch (which reveals the page behind it)
+// so it blends with the app background — no white patch around the label.
 const filterSx = {
-  bgcolor: '#fff',
-  borderRadius: '8px',
-  '& .MuiInputLabel-root': { bgcolor: '#fff', px: '4px', color: '#4a5a4f', fontWeight: 600 },
+  '& .MuiOutlinedInput-root': { bgcolor: '#fff', borderRadius: '8px' },
+  '& .MuiInputLabel-root': { color: '#4a5a4f', fontWeight: 600 },
   '& .MuiOutlinedInput-notchedOutline': { borderColor: '#d7dce3' },
   '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: GREEN },
 } as const;

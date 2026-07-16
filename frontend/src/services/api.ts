@@ -119,6 +119,8 @@ export const stationsApi = {
   remoteStop: (id: string, sessionId: string) =>
     api.post(`/web/stations/${id}/remote-stop`, { sessionId }),
   getStats: (id: string) => api.get(`/web/stations/${id}/stats`),
+  // Charging totals across completed sessions (consumption / amount / energy price / tax).
+  summary: () => api.get('/web/stations/summary'),
 };
 
 export const connectorsApi = {
@@ -151,6 +153,10 @@ export const sessionsApi = {
   stop: (id: string) => api.post(`/web/live-sessions/${id}/stop`),
   getMeterValues: (id: string) => api.get(`/web/sessions/${id}/meter-values`),
   getStats: (params?: object) => api.get('/web/sessions/stats', { params }),
+  // Charging totals (consumption / amount / energy price / tax) for the cards.
+  summary: () => api.get('/web/sessions/summary'),
+  // CSMS / OCPP server logs for one session.
+  logs: (id: string) => api.get(`/web/sessions/${id}/logs`),
 };
 
 export const tariffsApi = {
